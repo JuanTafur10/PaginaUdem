@@ -38,14 +38,13 @@ body, html {
   top: 20px;
   left: 20px;
   display: flex;
-  flex-direction: row-reverse; /* invierte el orden */
+  flex-direction: row; 
   align-items: center;
   gap: 4px;
 }
 
 .logo {
   height: 60px;
-  order: 2; /* asegura que el logo quede a la derecha */
 }
 
 .mini-text-vertical {
@@ -54,7 +53,6 @@ body, html {
   font-family: "Nexa Thin", sans-serif;
   writing-mode: vertical-rl; /* texto vertical */
   text-orientation: mixed;
-  order: 1; /* asegura que quede antes del logo */
 }
 
 /* Card con borde rojo */
