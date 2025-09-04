@@ -83,23 +83,39 @@
             <h4 className="subtitulo-texto">Ingresa tus credenciales</h4>
             
             <form onSubmit={handleLogin}>
-              <label className="texto">Usuario</label>
-              <input type="text" placeholder="Ingresa tu usuario" required />
-              
-              <label className="texto">Contraseña</label>
-              <input type="password" placeholder="Ingresa tu contraseña" required />
+            <label className="texto">Usuario</label>
+            <input type="text" placeholder="Ingresa tu usuario" required />
+            
+            <label className="texto">Contraseña</label>
+            <input type="password" placeholder="Ingresa tu contraseña" required />
 
-              <label className="texto">Rol</label>
-              <select required>
+            <label className="texto">Rol</label>
+            <select required>
                 <option value="">Selecciona tu rol</option>
                 <option value="monitor">Estudiante Monitor</option>
                 <option value="aspirante">Estudiante Aspirante</option>
                 <option value="docente">Docente</option>
                 <option value="coordinador">Coordinador Académico</option>
                 <option value="estudiante">Estudiante</option>
-              </select>
+            </select>
 
-              <button type="submit">Ingresar</button>
+            {/* Nuevo selector de semestre */}
+            <label className="texto">Semestre</label>
+            <select required>
+                <option value="">Selecciona tu semestre</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+
+            <button type="submit">Ingresar</button>
             </form>
             <a href="#" className="forgot">¿Olvidaste tu contraseña?</a>
           </div>

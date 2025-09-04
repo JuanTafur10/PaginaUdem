@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ingeniería de Sistemas - Monitorías</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* Estilo de las barras desplegables */
+    .dropdown-container {
+      display: flex;
+      justify-content: center; /* Centra horizontalmente */
+      gap: 40px; /* Espacio entre las dos barras */
+      margin-top: 50px;
+      flex-wrap: wrap; /* Permite que bajen en pantallas pequeñas */
+    }
+
+    .dropdown-container select {
+      width: 300px;
+      padding: 10px;
+      font-family: "Nexa Regular", sans-serif;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 2px solid #ff0000;
+      cursor: pointer;
+      text-align: center; /* Centra el texto de las opciones */
+    }
+
+    hr.divider {
+      margin-top: 30px;
+      margin-bottom: 30px;
+      border: none;
+      height: 2px;
+      background-color: #ff0000;
+      width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header idéntico -->
+  <header class="header">
+    <span class="mini-text-vertical">MinEducación</span>
+    <img src="logo.png" alt="Logo UdeM" class="logo" />
+  </header>
+
+  <!-- Título centrado -->
+  <h1 class="titulo-gestion">Ingeniería de Sistemas</h1>
+  <hr class="divider">
+
+  <!-- Menú lateral -->
+  <nav class="menu-lateral">
+    <button class="menu-toggle">☰</button>
+    <ul class="menu-items">
+      <li><a href="monitorias.html">⬅ Volver</a></li>
+      <li><a href="#">📞 Contáctanos</a></li>
+      <li><a href="#">ℹ Información</a></li>
+      <li><a href="#">⚙ Configuración</a></li>
+    </ul>
+  </nav>
+
+  <script>
+    // Script para mostrar/ocultar menú
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggle = document.querySelector(".menu-toggle");
+      const menu = document.querySelector(".menu-items");
+      toggle.addEventListener("click", () => {
+        menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+      });
+    });
+  </script>
+
+  <!-- Contenido principal: dos barras desplegables centradas -->
+  <main class="gestion-container" style="display: flex; justify-content: flex-start; align-items: flex-start; padding-left: 200px; gap: 40px; margin-top: 0;">
+  <div class="dropdown-container" style="margin-top: 0;">
+    <select>
+      <option value="">Selecciona la materia</option>
+      <option value="algoritmos">Algoritmos y Estructuras de Datos</option>
+      <option value="bases">Bases de Datos</option>
+      <option value="redes">Redes de Computadores</option>
+      <option value="sistemas_operativos">Sistemas Operativos</option>
+    </select>
+
+    <select>
+      <option value="">Selecciona el monitor</option>
+      <option value="juan">Juan Tafur</option>
+      <option value="maria">María Pérez</option>
+      <option value="carlos">Carlos Gómez</option>
+      <option value="luisa">Luisa Rodríguez</option>
+    </select>
+  </div>
+</main>
+</body>
+</html>
+
