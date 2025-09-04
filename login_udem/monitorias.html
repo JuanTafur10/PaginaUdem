@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Monitorías Académicas</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <!-- Header idéntico al index -->
+  <header class="header">
+    <span class="mini-text-vertical">MinEducación</span>
+    <img src="logo.png" alt="Logo UdeM" class="logo" />
+  </header>
+
+  <!-- Título centrado -->
+  <h1 class="titulo-gestion">Monitorías Académicas</h1>
+
+  <!-- Línea divisoria -->
+  <hr class="divider">
+
+  <!-- Menú lateral -->
+  <nav class="menu-lateral">
+    <button class="menu-toggle">☰</button>
+    <ul class="menu-items">
+      <li><a href="monitorias_login.html">⬅ Volver</a></li>
+      <li><a href="#">📞 Contáctanos</a></li>
+      <li><a href="#">ℹ Información</a></li>
+      <li><a href="#">⚙ Configuración</a></li>
+    </ul>
+  </nav>
+
+  <script>
+    // Script para mostrar/ocultar menú
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggle = document.querySelector(".menu-toggle");
+      const menu = document.querySelector(".menu-items");
+      toggle.addEventListener("click", () => {
+        menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+      });
+    });
+  </script>
+
+  <!-- Contenido principal -->
+ <main class="gestion-container">
+  <!-- Fila superior: 4 módulos -->
+  <section class="modulos">
+    <div class="fila">
+      <div class="modulo" style="border: 3px solid #8B0000;">
+        <div class="contenido-normal">
+          <h2>Facultad de Derecho</h2>
+          <p>Programas de formación jurídica y espacios de apoyo académico.</p>
+        </div>
+        <div class="contenido-hover">
+          <h2>Facultad de Derecho</h2>
+          <p>Carreras:</p>
+          <ul>
+            <li>Derecho</li>
+            <li>Investigación Criminal</li>
+            <li>Investigación Criminal Virtual</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modulo" style="border: 3px solid #1E90FF;">
+        <div class="contenido-normal">
+          <h2>Facultad de Ciencias Económicas y Administrativas</h2>
+          <p>Apoyo académico para estudiantes de economía, administración y finanzas.</p>
+        </div>
+        <div class="contenido-hover">
+          <h2>Facultad de Ciencias Económicas y Administrativas</h2>
+          <p>Carreras:</p>
+          <ul>
+            <li>Administración de Empresas</li>
+            <li>Contaduría Pública</li>
+            <li>Mercadeo</li>
+            <li>Negocios Internacionales</li>
+            <li>Economía</li>
+            <li>Administración de Agronegocios</li>
+            <li>Administración de Empresas Turísticas</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modulo" style="border: 3px solid #008000;">
+        <div class="contenido-normal">
+            <h2>Facultad de Ingenierías</h2>
+            <p>Espacios de monitoreo y tutorías especializadas en ingeniería.</p>
+        </div>
+        <div class="contenido-hover">
+            <p>Ingeniería Ambiental</p>
+            <p>Ingeniería Civil</p>
+            <p><a href="ingenieria_sistemas.html" style="color: #008000; text-decoration: underline;">Ingeniería de Sistemas</a></p>
+            <p>Ingeniería de Telecomunicaciones</p>
+            <p>Ingeniería Electrónica</p>
+            <p>Ingeniería Energía</p>
+            <p>Ingeniería Financiera</p>
+            <p>Ingeniería Industrial</p>
+        </div>
+    </div>
+      <div class="modulo" style="border: 3px solid #800080;">
+        <div class="contenido-normal">
+          <h2>Facultad de Comunicación</h2>
+          <p>Monitoreo y apoyo en proyectos y asignaturas de comunicación.</p>
+        </div>
+        <div class="contenido-hover">
+          <h2>Facultad de Comunicación</h2>
+          <p>Carreras:</p>
+          <ul>
+            <li>Comunicación y Relaciones Corporativas</li>
+            <li>Comunicación Gráfica Publicitaria</li>
+            <li>Comunicación y Lenguajes Audiovisuales</li>
+            <li>Comunicación y Entretenimiento Digital</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fila inferior: 3 módulos -->
+    <div class="fila">
+      <div class="modulo" style="border: 3px solid #FFD700;">
+        <div class="contenido-normal">
+          <h2>Instituto Ciencias Sociales y Humanas</h2>
+          <p>Apoyo académico en ciencias sociales y humanidades.</p>
+        </div>
+        <div class="contenido-hover">
+          <h2>Instituto Ciencias Sociales y Humanas</h2>
+          <p>Carreras:</p>
+          <ul>
+            <li>Psicología</li>
+            <li>Sociología</li>
+            <li>Trabajo Social</li>
+            <li>Ciencias Políticas</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modulo" style="border: 3px solid #20B2AA;">
+        <div class="contenido-normal">
+          <h2>Instituto de Ciencias Básicas</h2>
+          <p>Monitores para asignaturas de ciencias básicas y exactas.</p>
+        </div>
+        <div class="contenido-hover">
+          <h2>Instituto de Ciencias Básicas</h2>
+          <p>Carreras:</p>
+          <ul>
+            <li>Matemáticas</li>
+            <li>Física</li>
+            <li>Química</li>
+            <li>Biología</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modulo" style="border: 3px solid #FF8C00;">
+        <div class="contenido-normal">
+          <h2>Facultad de Diseño</h2>
+          <p>Apoyo académico en proyectos y asignaturas de diseño.</p>
+        </div>
+        <div class="contenido-hover">
+          <h2>Facultad de Diseño</h2>
+          <p>Carreras:</p>
+          <ul>
+            <li>Diseño Gráfico</li>
+            <li>Diseño Industrial</li>
+            <li>Diseño de Modas</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <button id="chatbot-button">💬 Chat</button>
+  </body>
+</main>
+</html>

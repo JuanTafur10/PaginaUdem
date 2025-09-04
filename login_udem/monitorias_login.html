@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login UdeM</title>
+  <title>Login Monitorías - UdeM</title>
   <link rel="stylesheet" href="style.css"/>
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
   <style>
     /* Modal de carga */
     .modal {
@@ -48,27 +49,25 @@
 <body>
   <div id="root"></div>
 
+  <!-- Modal de ingreso -->
   <div id="loginModal" class="modal">
     <div class="modal-content">
-        <h2>🔒 Iniciando sesión</h2>
-        <p>Estamos validando tus credenciales...</p>
-        <div class="loader"></div>
+      <h2>🔒 Iniciando sesión</h2>
+      <p>Estamos validando tus credenciales...</p>
+      <div class="loader"></div>
     </div>
   </div>
-  
 
   <script type="text/babel">
-    function App() {
+    function MonitoriasLogin() {
       const handleLogin = (e) => {
         e.preventDefault();
-
-        // Mostrar modal
         const modal = document.getElementById("loginModal");
         modal.style.display = "flex";
 
         // Simular validación y redirigir después de 1.5s
         setTimeout(() => {
-          window.location.href = "gestion.html";
+          window.location.href = "monitorias.html";
         }, 1500);
       };
 
@@ -80,14 +79,26 @@
           </header>
 
           <div className="login-card">
-            <h1 className="titulo-modulo">Iniciar Sesión</h1>
-            <h4 className="subtitulo-texto">Por favor ingresa tus datos</h4>
+            <h1 className="titulo-modulo">Monitorías Académicas</h1>
+            <h4 className="subtitulo-texto">Ingresa tus credenciales</h4>
             
             <form onSubmit={handleLogin}>
               <label className="texto">Usuario</label>
               <input type="text" placeholder="Ingresa tu usuario" required />
+              
               <label className="texto">Contraseña</label>
               <input type="password" placeholder="Ingresa tu contraseña" required />
+
+              <label className="texto">Rol</label>
+              <select required>
+                <option value="">Selecciona tu rol</option>
+                <option value="monitor">Estudiante Monitor</option>
+                <option value="aspirante">Estudiante Aspirante</option>
+                <option value="docente">Docente</option>
+                <option value="coordinador">Coordinador Académico</option>
+                <option value="estudiante">Estudiante</option>
+              </select>
+
               <button type="submit">Ingresar</button>
             </form>
             <a href="#" className="forgot">¿Olvidaste tu contraseña?</a>
@@ -97,11 +108,7 @@
     }
 
     const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<App />);
+    root.render(<MonitoriasLogin />);
   </script>
 </body>
 </html>
-
-
-
-
