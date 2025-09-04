@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestión Académica</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <!-- Header se mantiene exactamente igual al index -->
+  <header class="header">
+    <span class="mini-text-vertical">MinEducación</span>
+    <img src="logo.png" alt="Logo UdeM" class="logo" />
+  </header>
+
+  <!-- Título centrado -->
+  <h1 class="titulo-gestion">Gestión Académica</h1>
+
+
+<!-- Línea divisoria -->
+<hr class="divider">
+
+<!-- Menú lateral -->
+<nav class="menu-lateral">
+  <button class="menu-toggle">☰</button>
+  <ul class="menu-items">
+    <li><a href="index.html">⬅ Volver</a></li>
+    <li><a href="#">📞 Contáctanos</a></li>
+    <li><a href="#">ℹ Información</a></li>
+    <li><a href="#">⚙ Configuración</a></li>
+  </ul>
+</nav>
+
+<script>
+  // Script para mostrar/ocultar menú
+  document.addEventListener("DOMContentLoaded", () => {
+    const toggle = document.querySelector(".menu-toggle");
+    const menu = document.querySelector(".menu-items");
+    toggle.addEventListener("click", () => {
+      menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+    });
+  });
+</script>
+
+
+  <!-- Contenido principal -->
+  <main class="gestion-container">
+    <section class="modulos">
+        <div class="modulo">
+            <h2>🤖 Chatbot</h2>
+            <p>Asistente virtual para resolver dudas rápidas y guiar al estudiante.</p>
+        </div>
+        <div class="modulo">
+            <h2>📅 Planner Universitario</h2>
+            <p>Organiza tu horario de clases, exámenes y actividades académicas.</p>
+        </div>
+        <div class="modulo">
+            <h2>📚 Líneas de Énfasis</h2>
+            <p>Consulta y selecciona las líneas de énfasis disponibles en tu carrera.</p>
+        </div>
+        <div class="modulo">
+            <h2>👨‍🏫 Monitorías Académicas</h2>
+            <p>Accede a espacios de apoyo académico con monitores especializados.</p>
+        </div>
+    </section>
+
+

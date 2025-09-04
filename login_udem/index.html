@@ -9,15 +9,65 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    /* Estilos del mensaje emergente */
+    .mensaje {
+      background: #2c2c2c;
+      border-radius: 12px;
+      padding: 20px 30px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+      text-align: center;
+      width: 350px;
+      animation: aparecer 0.5s ease-out;
+      display: none; /* Oculto al inicio */
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+    }
+
+    .mensaje h2 {
+      margin: 0;
+      font-size: 18px;
+      color: #9cdcfe;
+    }
+
+    .mensaje p {
+      margin: 10px 0;
+      font-size: 14px;
+      color: #d4d4d4;
+    }
+
+    @keyframes aparecer {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
 </head>
 <body>
   <div id="root"></div>
+
+  <!-- Mensaje emergente -->
+  <div class="mensaje" id="mensaje">
+    <h2>🔒 Intentando iniciar sesión...</h2>
+    <p>Por favor espera un momento</p>
+  </div>
 
   <script type="text/babel">
     function App() {
       const handleLogin = (e) => {
         e.preventDefault();
-        alert("Intentando iniciar sesión...");
+
+        // Mostrar el mensaje
+        const msg = document.getElementById("mensaje");
+        msg.style.display = "block";
+
+        // Simular un tiempo de carga y luego redirigir
+        setTimeout(() => {
+          msg.style.display = "none";
+          window.location.href = "gestion.html"; 
+        }, 2000);
       };
 
       return (

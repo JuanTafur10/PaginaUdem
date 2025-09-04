@@ -131,3 +131,155 @@ body, html {
 .forgot:hover {
   text-decoration: underline;
 }
+
+
+/* === Gestión Académica === */
+
+
+/* Título centrado */
+.titulo-gestion {
+  font-family: 'Nexa', sans-serif;
+  font-weight: bold;
+  font-size: 28px;
+  color: black;
+  text-align: center;
+  margin-top: 40px; /* Ajusta el valor según la altura del logo */
+}
+
+/* Línea divisoria */
+.divider {
+  border: none;
+  height: 2px;
+  background-color: #ccc;
+  width: 100%;
+  margin-top: 45px;   /* Separa la línea del header */
+  margin-bottom: 30px;
+}
+
+/* Contenedor principal */
+.gestion-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 200px); /* resta espacio del header y título */
+  text-align: center;
+}
+
+/* Grid de módulos */
+.modulos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Estilos de cada módulo */
+.modulo {
+  border: 2px solid #C2262B;
+  padding: 25px 20px;
+  text-align: center;
+  font-family: 'Nexa', sans-serif;
+  border-radius: 12px;
+  background: white;
+  color: black;
+  transition: transform 0.2s ease, background 0.3s ease;
+}
+
+.modulo h2 {
+  font-size: 20px;
+  font-weight: bold;
+  color: #3A66AA;
+  margin-bottom: 10px;
+}
+
+.modulo p {
+  font-size: 14px;
+  color: #333;
+  margin: 0;
+}
+
+.modulo:hover {
+  transform: scale(1.05);
+  background: #f9f9f9;
+}
+
+
+/* Menú lateral */
+.menu-lateral {
+  position: absolute;
+  top: 140px; /* ajusta según altura de tu header + título */
+  left: 20px;
+  z-index: 1000;
+}
+
+.menu-toggle {
+  background-color: #3A66AA;
+  color: white;
+  font-size: 18px;
+  border: none;
+  padding: 6px 12px; /* más delgado */
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.menu-toggle:hover {
+  background-color: #274a7a;
+  transform: scale(1.05);
+}
+
+/* Caja del menú desplegado */
+.menu-items {
+  position: absolute;
+  top: 45px; 
+  left: 0;
+  list-style: none;
+  margin: 0;
+  padding: 10px 0;
+  display: none;
+  flex-direction: column;
+  background: #fff;
+  border: 2px solid #d32f2f; /* borde rojo */
+  border-radius: 10px;
+  width: 200px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  animation: fadeIn 0.3s ease;
+}
+
+.menu-items li {
+  border-bottom: 1px solid #eee;
+}
+
+.menu-items li:last-child {
+  border-bottom: none;
+}
+
+.menu-items a {
+  display: block;
+  padding: 12px 16px;
+  text-decoration: none;
+  font-family: 'Nexa', sans-serif;
+  font-size: 15px;
+  color: #333;
+  transition: background 0.2s ease;
+}
+
+.menu-items a:hover {
+  background-color: #f7f7f7;
+}
+
+/* Animación suave */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+
+
+
+
+
+
