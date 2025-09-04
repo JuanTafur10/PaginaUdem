@@ -1,0 +1,135 @@
+/* Fuentes Nexa */
+@font-face {
+  font-family: "Nexa Regular";
+  src: url("Nexa-Regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Nexa Book";
+  src: url("Nexa-Book.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Nexa ExtraLight";
+  src: url("Nexa-ExtraLight.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Nexa Thin";
+  src: url("Nexa-Thin.ttf") format("truetype");
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: "Nexa Regular", sans-serif;
+  height: 100%;
+  background: white;
+}
+
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
+  position: relative;
+}
+
+.header {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: row-reverse; /* invierte el orden */
+  align-items: center;
+  gap: 4px;
+}
+
+.logo {
+  height: 60px;
+  order: 2; /* asegura que el logo quede a la derecha */
+}
+
+.mini-text-vertical {
+  font-size: 12px;
+  color: #333;
+  font-family: "Nexa Thin", sans-serif;
+  writing-mode: vertical-rl; /* texto vertical */
+  text-orientation: mixed;
+  order: 1; /* asegura que quede antes del logo */
+}
+
+/* Card con borde rojo */
+.login-card {
+  background: white;
+  padding: 30px 40px;
+  border-radius: 10px;
+  border: 2px solid #c2262b;
+  width: 380px;
+  text-align: center;
+}
+
+/* Estilos tipográficos */
+.titulo-modulo {
+  font-family: "Nexa Regular", sans-serif;
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.titulo-texto {
+  font-family: "Nexa Book", sans-serif;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.subtitulo-texto {
+  font-family: "Nexa ExtraLight", sans-serif;
+  font-size: 16px;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.texto {
+  font-family: "Nexa Thin", sans-serif;
+  font-size: 14px;
+  text-align: left;
+}
+
+/* Inputs y botón */
+.login-card input {
+  padding: 10px;
+  border: 1px solid #c2262b;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.login-card button {
+  background: #c2262b;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.login-card button:hover {
+  background: #a81e25;
+}
+
+.forgot {
+  display: block;
+  margin-top: 15px;
+  font-size: 13px;
+  color: #c2262b;
+  text-decoration: none;
+  font-family: "Nexa Thin", sans-serif;
+}
+
+.forgot:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login UdeM</title>
+  <link rel="stylesheet" href="style.css"/>
+  <!-- React y ReactDOM desde CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    function App() {
+      const handleLogin = (e) => {
+        e.preventDefault();
+        alert("Intentando iniciar sesión...");
+      };
+
+      return (
+        <div className="login-page">
+          {/* Logo + mineducacion */}
+          <header className="header">
+            <img src="logo.png" alt="Logo UdeM" className="logo" />
+            <span className="mini-text-vertical">mineducación</span>
+          </header>
+
+          {/* Card */}
+          <div className="login-card">
+            <h1 className="titulo-modulo">Iniciar Sesión</h1>
+            <h4 className="subtitulo-texto">Por favor ingresa tus datos</h4>
+            
+            <form onSubmit={handleLogin}>
+              <label className="texto">Usuario</label>
+              <input type="text" placeholder="Ingresa tu usuario" required />
+              <label className="texto">Contraseña</label>
+              <input type="password" placeholder="Ingresa tu contraseña" required />
+              <button type="submit">Ingresar</button>
+            </form>
+            <a href="#" className="forgot">¿Olvidaste tu contraseña?</a>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
+
+
+
