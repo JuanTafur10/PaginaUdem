@@ -406,3 +406,147 @@ body, html {
 #chatbot-button:hover {
   transform: scale(1.1);
 }
+
+@media screen and (max-width: 480px) {
+  .login-card, .modulo {
+    width: 90%;
+    padding: 16px;
+  }
+
+  .modulos, .fila {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .mini-text-vertical {
+    display: none;
+  }
+
+  .logo {
+    height: 40px;
+  }
+
+  .titulo-gestion {
+    font-size: 20px;
+    margin-top: 20px;
+  }
+
+  .menu-lateral {
+    position: static;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .menu-items {
+    width: 90%;
+    left: 0;
+  }
+
+  .gestion-container {
+    padding: 10px;
+    height: auto;
+  }
+}
+
+@media screen and (min-width: 481px) and (max-width: 768px) {
+  .login-card, .modulo {
+    width: 90%;
+  }
+
+  .modulos, .fila {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .menu-lateral {
+    position: static;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .gestion-container {
+    padding: 10px;
+    height: auto;
+  }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .login-card {
+    width: 80%;
+  }
+
+  .modulos {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .fila {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .modulo {
+    width: 45%;
+    height: auto;
+  }
+
+  .gestion-container {
+    padding: 0 20px;
+    height: auto;
+  }
+}
+
+@media screen and (min-width: 1025px) and (max-width: 1440px) {
+  .login-card {
+    width: 400px;
+  }
+
+  .modulos {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .fila {
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .modulo {
+    width: 280px;
+    height: 250px;
+  }
+
+  .gestion-container {
+    height: calc(100vh - 200px);
+  }
+}
+
+@media screen and (min-width: 1441px) {
+  .modulos {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+  }
+
+  .modulo {
+    width: 300px;
+    height: 260px;
+  }
+
+  .login-card {
+    width: 420px;
+  }
+
+  .gestion-container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
+
