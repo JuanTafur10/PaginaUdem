@@ -8,6 +8,8 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Importar nuestro cliente API -->
+  <script src="api.js"></script>
   <style>
     /* Modal de carga */
     .modal {
@@ -43,6 +45,11 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    .error-message {
+      color: #d32f2f;
+      margin-top: 10px;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -55,21 +62,70 @@
         <div class="loader"></div>
     </div>
   </div>
-  
 
   <script type="text/babel">
     function App() {
-      const handleLogin = (e) => {
-        e.preventDefault();
+      const [credentials, setCredentials] = React.useState({
+        correo: '',
+        password: ''
+      });
+      const [error, setError] = React.useState('');
+      const [isLoading, setIsLoading] = React.useState(false);
 
-        // Mostrar modal
+      const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setCredentials(prev => ({
+          ...prev,
+          [name]: value
+        }));
+        setError(''); // Limpiar error cuando el usuario escriba
+      };
+
+      const handleLogin = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError('');
+
+        // Mostrar modal de carga
         const modal = document.getElementById("loginModal");
         modal.style.display = "flex";
 
-        // Simular validación y redirigir después de 1.5s
-        setTimeout(() => {
-          window.location.href = "gestion.html";
-        }, 1500);
+        try {
+          // Validar que los campos no estén vacíos
+          if (!credentials.correo || !credentials.password) {
+            throw new Error('Por favor, completa todos los campos');
+          }
+
+          // Llamar a la API real
+          const response = await apiClient.login(credentials.correo, credentials.password);
+          
+          console.log('Login exitoso:', response);
+          
+          // Redirigir según el rol del usuario
+          setTimeout(() => {
+            if (response.rol === 'COORDINATOR') {
+              window.location.href = "gestion.html";
+            } else {
+              window.location.href = "monitorias.html";
+            }
+          }, 1000);
+          
+        } catch (error) {
+          console.error('Error en login:', error);
+          
+          // Mostrar error específico en español
+          let errorMsg = error.message;
+          if (errorMsg.includes('credenciales inválidas')) {
+            errorMsg = 'Usuario o contraseña incorrectos. Por favor, intenta de nuevo.';
+          } else if (errorMsg.includes('correo y password requeridos')) {
+            errorMsg = 'Por favor, completa todos los campos.';
+          }
+          
+          setError(errorMsg);
+          modal.style.display = "none";
+        } finally {
+          setIsLoading(false);
+        }
       };
 
       return (
@@ -84,13 +140,41 @@
             <h4 className="subtitulo-texto">Por favor ingresa tus datos</h4>
             
             <form onSubmit={handleLogin}>
-              <label className="texto">Usuario</label>
-              <input type="text" placeholder="Ingresa tu usuario" required />
+              <label className="texto">Usuario (Correo)</label>
+              <input 
+                type="email" 
+                name="correo"
+                placeholder="Ingresa tu correo electrónico" 
+                value={credentials.correo}
+                onChange={handleInputChange}
+                required 
+              />
               <label className="texto">Contraseña</label>
-              <input type="password" placeholder="Ingresa tu contraseña" required />
-              <button type="submit">Ingresar</button>
+              <input 
+                type="password" 
+                name="password"
+                placeholder="Ingresa tu contraseña" 
+                value={credentials.password}
+                onChange={handleInputChange}
+                required 
+              />
+              
+              {error && <div className="error-message">{error}</div>}
+              
+              <button type="submit" disabled={isLoading}>
+                {isLoading ? 'Ingresando...' : 'Ingresar'}
+              </button>
             </form>
             <a href="#" className="forgot">¿Olvidaste tu contraseña?</a>
+            
+            <div style={{marginTop: '20px', fontSize: '12px', color: '#666'}}>
+              <strong>Usuarios de prueba:</strong><br/>
+              Coordinador: coordinador@udem.edu.co / 123456<br/>
+              Estudiantes:<br/>
+              • estudiante@udem.edu.co / 123456<br/>
+              • maria@udem.edu.co / 123456<br/>
+              • carlos@udem.edu.co / 123456
+            </div>
           </div>
         </div>
       );

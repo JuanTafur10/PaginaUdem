@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil - UdeM</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="api.js"></script>
+    <style>
+        .profile-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .role-coordinator {
+            background: #28a745;
+            color: white;
+        }
+        
+        .role-student {
+            background: #007bff;
+            color: white;
+        }
+        
+        .success-message, .error-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <header class="header">
+            <span class="mini-text-vertical">MinEducación</span>
+            <img src="logo.png" alt="Logo UdeM" className="logo" />
+        </header>
+        
+        <div id="root"></div>
+    </div>
+
+    <script type="text/babel">
+        function ProfilePage() {
+            const [user, setUser] = React.useState(null);
+            const [loading, setLoading] = React.useState(true);
+            const [saving, setSaving] = React.useState(false);
+            const [message, setMessage] = React.useState(null);
+            const [formData, setFormData] = React.useState({
+                nombre: '',
+                semestre: ''
+            });
+
+            React.useEffect(() => {
+                loadUserProfile();
+            }, []);
+
+            const loadUserProfile = async () => {
+                try {
+                    if (!apiClient.isAuthenticated()) {
+                        window.location.href = 'index.html';
+                        return;
+                    }
+
+                    const userData = await apiClient.getProfile();
+                    setUser(userData);
+                    setFormData({
+                        nombre: userData.nombre || '',
+                        semestre: userData.semestre || ''
+                    });
+                } catch (error) {
+                    console.error('Error al cargar perfil:', error);
+                    setMessage({ type: 'error', text: 'Error al cargar el perfil' });
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleInputChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: value
+                }));
+            };
+
+            const handleSave = async (e) => {
+                e.preventDefault();
+                setSaving(true);
+                setMessage(null);
+
+                try {
+                    const updatedUser = await apiClient.updateProfile(formData);
+                    setUser(updatedUser);
+                    
+                    // Actualizar datos en localStorage
+                    localStorage.setItem('user_data', JSON.stringify(updatedUser));
+                    
+                    setMessage({ type: 'success', text: 'Perfil actualizado correctamente' });
+                } catch (error) {
+                    console.error('Error al actualizar perfil:', error);
+                    setMessage({ type: 'error', text: error.message || 'Error al actualizar el perfil' });
+                } finally {
+                    setSaving(false);
+                }
+            };
+
+            const handleBack = () => {
+                if (user?.rol === 'COORDINATOR') {
+                    window.location.href = 'gestion.html';
+                } else {
+                    window.location.href = 'monitorias.html';
+                }
+            };
+
+            const handleLogout = () => {
+                apiClient.logout();
+                window.location.href = 'index.html';
+            };
+
+            if (loading) {
+                return (
+                    <div className="profile-container">
+                        <div style={{ textAlign: 'center', padding: '40px' }}>
+                            <p>Cargando perfil...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!user) {
+                return (
+                    <div className="profile-container">
+                        <div style={{ textAlign: 'center', padding: '40px' }}>
+                            <p>Error al cargar el perfil</p>
+                            <button className="btn" onClick={() => window.location.href = 'index.html'}>
+                                Volver al login
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="profile-container">
+                    <div className="profile-header">
+                        <h1>Mi Perfil</h1>
+                        <span className={`role-badge role-${user.rol.toLowerCase()}`}>
+                            {user.rol === 'COORDINATOR' ? 'Coordinador Académico' : 'Estudiante'}
+                        </span>
+                    </div>
+
+                    {message && (
+                        <div className={message.type === 'error' ? 'error-message' : 'success-message'}>
+                            {message.text}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSave}>
+                        <div className="form-group">
+                            <label>Nombre Completo</label>
+                            <input
+                                type="text"
+                                name="nombre"
+                                value={formData.nombre}
+                                onChange={handleInputChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label>Correo Electrónico</label>
+                            <input
+                                type="email"
+                                value={user.correo}
+                                disabled
+                                style={{ backgroundColor: '#f8f9fa', color: '#6c757d' }}
+                            />
+                            <small style={{ color: '#6c757d', fontSize: '12px' }}>
+                                El correo electrónico no se puede modificar
+                            </small>
+                        </div>
+
+                        {/* Solo mostrar selector de semestre para estudiantes */}
+                        {user.rol === 'STUDENT' && (
+                            <div className="form-group">
+                                <label>Semestre Actual</label>
+                                <select
+                                    name="semestre"
+                                    value={formData.semestre}
+                                    onChange={handleInputChange}
+                                    required
+                                >
+                                    <option value="">Selecciona tu semestre</option>
+                                    {ApiUtils.getSemesterOptions().map(option => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
+                        <div style={{ marginTop: '30px', textAlign: 'center' }}>
+                            <button type="submit" className="btn" disabled={saving}>
+                                {saving ? 'Guardando...' : 'Guardar Cambios'}
+                            </button>
+                            <button type="button" className="btn btn-secondary" onClick={handleBack}>
+                                Volver
+                            </button>
+                            <button type="button" className="btn btn-secondary" onClick={handleLogout}>
+                                Cerrar Sesión
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ProfilePage />);
+    </script>
+</body>
+</html>
