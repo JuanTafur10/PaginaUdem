@@ -65,6 +65,69 @@
         <p>Accede a espacios de apoyo académico con monitores especializados.</p>
     </div>
 </a>
+
+        <!-- HU-06 -->
+        <div class="modulo">
+          <div class="contenido-normal">
+            <h2>📄 Postulación</h2>
+            <p>Registra tu postulación a una convocatoria.</p>
+          </div>
+          <div class="contenido-hover">
+            <form id="formPostulacion" style="display:flex;flex-direction:column;gap:10px;width:100%;">
+              <input type="text" name="nombre" placeholder="Nombre completo" required />
+              <input type="email" name="correo" placeholder="Correo electrónico" required />
+              <input type="text" name="convocatoria" placeholder="Convocatoria" required />
+              <button type="submit">Enviar</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- HU-07 -->
+        <div class="modulo">
+          <div class="contenido-normal">
+            <h2>📎 Subir CV</h2>
+            <p>Adjunta tu hoja de vida en formato digital.</p>
+          </div>
+          <div class="contenido-hover">
+            <form id="formCV" enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:10px;width:100%;">
+              <input type="file" name="cv" accept=".pdf,.doc,.docx" required />
+              <button type="submit">Subir CV</button>
+            </form>
+          </div>
+        </div>
     </section>
+  </main>
 
+  <script>
+    // Manejo del formulario de postulación
+    document.getElementById('formPostulacion').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const data = {
+        nombre: formData.get('nombre'),
+        correo: formData.get('correo'),
+        convocatoria: formData.get('convocatoria')
+      };
+      
+      console.log('Datos de postulación:', data);
+      alert('Postulación enviada exitosamente');
+      this.reset();
+    });
 
+    // Manejo del formulario de CV
+    document.getElementById('formCV').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const file = formData.get('cv');
+      
+      if (file && file.size > 0) {
+        console.log('CV subido:', file.name);
+        alert('CV subido exitosamente: ' + file.name);
+        this.reset();
+      } else {
+        alert('Por favor selecciona un archivo');
+      }
+    });
+  </script>
+</body>
+</html>

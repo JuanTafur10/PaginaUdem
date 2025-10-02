@@ -135,7 +135,6 @@ body, html {
 
 /* === Gestión Académica === */
 
-
 /* Título centrado */
 .titulo-gestion {
   font-family: 'Nexa', sans-serif;
@@ -143,7 +142,8 @@ body, html {
   font-size: 28px;
   color: black;
   text-align: center;
-  margin-top: 40px; /* Ajusta el valor según la altura del logo */
+  margin-top: 60px;   /* antes 40px → le doy más aire desde arriba */
+  margin-bottom: 60px; /* ⬅ separa los módulos del título */
 }
 
 /* Línea divisoria */
@@ -152,27 +152,30 @@ body, html {
   height: 2px;
   background-color: #C2262B;
   width: 100%;
-  margin-top: 45px;   /* Separa la línea del header */
+  margin-top: 20px;   /* antes 45px */
   margin-bottom: 30px;
 }
 
 /* Contenedor principal */
 .gestion-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start; /* antes estaba centrado → causaba el solapamiento */
   align-items: center;
-  height: calc(100vh - 200px); /* resta espacio del header y título */
+  padding: 20px;       /* ⬅ espacio interno */
+  height: auto;        /* ⬅ ya no forzamos altura fija que lo aplastaba */
   text-align: center;
 }
 
 /* Grid de módulos */
 .modulos {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 30px;
-  max-width: 800px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;  /* ⬅ más espacio entre filas */
+  margin-top: 20px; /* ⬅ asegura separación extra después del título */
 }
+
 
 /* Estilos de cada módulo */
 .modulo {
@@ -208,7 +211,7 @@ body, html {
 /* Menú lateral */
 .menu-lateral {
   position: absolute;
-  top: 140px; /* ajusta según altura de tu header + título */
+  top: 180px; /* bajado para mejor posicionamiento */
   left: 20px;
   z-index: 1000;
 }
@@ -407,6 +410,66 @@ body, html {
   transform: scale(1.1);
 }
 
+/* Responsividad mejorada */
+@media screen and (max-width: 320px) {
+  .login-card {
+    width: 95%;
+    padding: 12px;
+    margin: 0 auto;
+  }
+
+  .modulo {
+    width: 95%;
+    padding: 12px;
+    height: auto;
+    min-height: 120px;
+  }
+
+  .logo {
+    height: 35px;
+  }
+
+  .titulo-gestion {
+    font-size: 18px;
+    margin-top: 15px;
+    margin-bottom: 20px;
+  }
+
+  .menu-lateral {
+    position: static;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+  }
+
+  .menu-toggle {
+    font-size: 16px;
+    padding: 5px 10px;
+  }
+
+  .menu-items {
+    width: 95%;
+    left: 2.5%;
+  }
+
+  .gestion-container {
+    padding: 5px;
+  }
+
+  .modulos {
+    gap: 10px;
+  }
+
+  #chatbot-button {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    bottom: 15px;
+    right: 15px;
+  }
+}
+
 @media screen and (max-width: 480px) {
   .login-card, .modulo {
     width: 90%;
@@ -465,11 +528,28 @@ body, html {
     width: 100%;
     display: flex;
     justify-content: center;
+    margin-top: 15px;
+  }
+
+  .menu-toggle {
+    font-size: 16px;
+    padding: 8px 15px;
+  }
+
+  .menu-items {
+    width: 80%;
+    left: 10%;
   }
 
   .gestion-container {
-    padding: 10px;
+    padding: 15px;
     height: auto;
+  }
+
+  .titulo-gestion {
+    font-size: 22px;
+    margin-top: 25px;
+    margin-bottom: 30px;
   }
 }
 
@@ -493,6 +573,17 @@ body, html {
   .modulo {
     width: 45%;
     height: auto;
+    min-height: 200px;
+  }
+
+  .menu-lateral {
+    top: 160px;
+  }
+
+  .titulo-gestion {
+    font-size: 26px;
+    margin-top: 35px;
+    margin-bottom: 40px;
   }
 
   .gestion-container {
@@ -520,10 +611,22 @@ body, html {
   .modulo {
     width: 280px;
     height: 250px;
+    min-height: 220px;
+  }
+
+  .menu-lateral {
+    top: 170px;
+  }
+
+  .titulo-gestion {
+    margin-top: 40px;
+    margin-bottom: 50px;
   }
 
   .gestion-container {
-    height: calc(100vh - 200px);
+    height: auto;
+    min-height: calc(100vh - 300px);
+    padding: 20px;
   }
 }
 
@@ -538,15 +641,80 @@ body, html {
   .modulo {
     width: 300px;
     height: 260px;
+    min-height: 240px;
   }
 
   .login-card {
     width: 420px;
   }
 
+  .menu-lateral {
+    top: 180px;
+  }
+
+  .titulo-gestion {
+    margin-top: 50px;
+    margin-bottom: 60px;
+  }
+
   .gestion-container {
     max-width: 1400px;
     margin: 0 auto;
+    padding: 30px;
+    min-height: calc(100vh - 350px);
   }
 }
 
+/* Responsividad adicional para pantallas ultra-wide */
+@media screen and (min-width: 1920px) {
+  .gestion-container {
+    max-width: 1600px;
+    padding: 40px;
+  }
+
+  .modulos {
+    gap: 40px;
+  }
+
+  .modulo {
+    width: 320px;
+    height: 280px;
+  }
+
+  .login-card {
+    width: 450px;
+  }
+
+  .titulo-gestion {
+    font-size: 32px;
+    margin-top: 60px;
+    margin-bottom: 70px;
+  }
+}
+
+/* Responsive para orientación landscape en móviles */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .titulo-gestion {
+    font-size: 20px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+  }
+
+  .menu-lateral {
+    top: 80px;
+  }
+
+  .gestion-container {
+    padding: 10px;
+  }
+
+  .modulo {
+    height: auto;
+    min-height: 100px;
+    padding: 10px;
+  }
+
+  .logo {
+    height: 40px;
+  }
+}
