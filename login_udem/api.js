@@ -80,6 +80,17 @@ class ApiClient {
             console.log(`📦 Datos recibidos:`, data);
             
             if (!response.ok) {
+                // Gestionar expiración de token
+                if (response.status === 401 && (data.msg || '').toLowerCase().includes('expired')) {
+                    console.warn('🔑 Token expirado, cerrando sesión automáticamente.');
+                    this.token = null;
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('user_rol');
+                    localStorage.removeItem('user_data');
+                    alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
+                    window.location.href = 'index.html';
+                    return; // Detener flujo
+                }
                 throw new Error(data.msg || 'Error en la petición');
             }
             

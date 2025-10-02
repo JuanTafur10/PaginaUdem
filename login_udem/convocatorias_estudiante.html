@@ -371,6 +371,25 @@
         // Variables globales
         let todasLasConvocatorias = [];
         let convocatoriasFiltradas = [];
+        // Mapeo de estados backend (es) -> frontend (en)
+        const estadoMap = {
+            'borrador': 'draft',
+            'programada': 'scheduled',
+            'activa': 'active',
+            'cerrada': 'closed',
+            // Aceptar también los ya normalizados por compatibilidad
+            'draft': 'draft',
+            'scheduled': 'scheduled',
+            'active': 'active',
+            'closed': 'closed'
+        };
+
+        function normalizarEstados(lista) {
+            return (lista || []).map(c => ({
+                ...c,
+                estado: estadoMap[c.estado] || c.estado
+            }));
+        }
 
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
@@ -428,15 +447,26 @@
             listElement.innerHTML = '';
 
             try {
-                const result = await ApiUtils.getConvocatorias();
-                
-                if (result.success) {
-                    todasLasConvocatorias = result.data;
-                    convocatoriasFiltradas = [...todasLasConvocatorias];
-                    updateStats();
-                    displayConvocatorias();
-                } else {
-                    showAlert(`❌ Error al cargar convocatorias: ${result.error}`, 'error');
+                // Primero llamar endpoint de activas (esto actualiza estados en backend) y obtener activas
+                const activasResult = await ApiUtils.getConvocatoriasActivas();
+                // Luego obtener todas para estadísticas y filtros futuros
+                const todasResult = await ApiUtils.getConvocatorias();
+
+                if (!todasResult.success) {
+                    showAlert(`❌ Error al cargar convocatorias: ${todasResult.error}`, 'error');
+                    return;
+                }
+
+                // Normalizar estados (Spanish -> English)
+                todasLasConvocatorias = normalizarEstados(todasResult.data);
+                const activasNormalizadas = activasResult.success ? normalizarEstados(activasResult.data) : [];
+
+                // Por requerimiento HU: mostrar únicamente las activas inicialmente
+                convocatoriasFiltradas = [...activasNormalizadas];
+                updateStats();
+                displayConvocatorias();
+                if (convocatoriasFiltradas.length === 0) {
+                    showAlert('ℹ️ No hay convocatorias activas en este momento.', 'info');
                 }
             } catch (error) {
                 showAlert(`❌ Error inesperado: ${error.message}`, 'error');
@@ -569,13 +599,13 @@
 
         // Función para formatear fechas
         function formatDateTime(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleString('es-ES', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+            if (!dateString) return 'No asignada';
+            let date;
+            try { date = new Date(dateString); } catch { return dateString; }
+            if (isNaN(date.getTime())) return dateString;
+            return date.toLocaleString('es-CO', {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit'
             });
         }
 

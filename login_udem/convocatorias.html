@@ -304,6 +304,23 @@
     <script>
         // Variables globales
         let convocatorias = [];
+        const estadoMap = {
+            'borrador': 'draft',
+            'programada': 'scheduled',
+            'activa': 'active',
+            'cerrada': 'closed',
+            'draft': 'draft',
+            'scheduled': 'scheduled',
+            'active': 'active',
+            'closed': 'closed'
+        };
+
+        function normalizarEstados(lista) {
+            return (lista || []).map(c => ({
+                ...c,
+                estado: estadoMap[c.estado] || c.estado
+            }));
+        }
 
         // Verificar autenticación
         document.addEventListener('DOMContentLoaded', function() {
@@ -419,7 +436,7 @@
                 const result = await ApiUtils.getConvocatorias();
                 
                 if (result.success) {
-                    convocatorias = result.data;
+                    convocatorias = normalizarEstados(result.data);
                     displayConvocatorias(convocatorias);
                 } else {
                     showAlert(`❌ Error al cargar convocatorias: ${result.error}`, 'error');
@@ -458,12 +475,78 @@
                             <button class="btn btn-primary" onclick="showFechasModal(${conv.id})">
                                 📅 Asignar/Modificar Fechas (HU-02)
                             </button>
+                            <button class="btn btn-secondary" onclick="showEditarModal(${conv.id})">
+                                ✏️ Editar Información
+                            </button>
                         ` : ''}
                     </div>
                 </div>
             `).join('');
 
             listElement.innerHTML = convocatoriasHTML;
+        }
+
+        // Modal editar convocatoria (HU nueva)
+        function showEditarModal(convocatoriaId) {
+            const convocatoria = convocatorias.find(c => c.id === convocatoriaId);
+            if (!convocatoria) return;
+            const modalHTML = `
+                <div id="editarModal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:2000;">
+                    <div style="background:#fff; padding:25px; border-radius:10px; width:95%; max-width:560px;">
+                        <h3>Editar Convocatoria: ${convocatoria.curso}</h3>
+                        <form id="formEditarConvocatoria">
+                            <div class="form-group">
+                                <label>Curso/Materia</label>
+                                <input type="text" id="editCurso" value="${convocatoria.curso}" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Semestre</label>
+                                <input type="text" id="editSemestre" value="${convocatoria.semestre}" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Requisitos</label>
+                                <textarea id="editRequisitos" style="height:120px;">${convocatoria.requisitos}</textarea>
+                            </div>
+                            <div style="margin-top:15px; text-align:right;">
+                                <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+                                <button type="button" class="btn btn-secondary" onclick="closeEditarModal()">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>`;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            document.getElementById('formEditarConvocatoria').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await editarConvocatoria(convocatoriaId);
+            });
+        }
+
+        function closeEditarModal() {
+            const m = document.getElementById('editarModal');
+            if (m) m.remove();
+        }
+
+        async function editarConvocatoria(id) {
+            const payload = {
+                curso: document.getElementById('editCurso').value.trim(),
+                semestre: document.getElementById('editSemestre').value.trim(),
+                requisitos: document.getElementById('editRequisitos').value.trim()
+            };
+            try {
+                const response = await apiClient.request(`/convocatorias/${id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify(payload)
+                });
+                if (response && response.id) {
+                    showAlert('✅ Convocatoria actualizada', 'success');
+                    closeEditarModal();
+                    loadConvocatorias();
+                } else {
+                    showAlert('❌ No se pudo actualizar', 'error');
+                }
+            } catch (err) {
+                showAlert('❌ Error al actualizar: ' + err.message, 'error');
+            }
         }
 
         // Función para obtener etiqueta del estado
