@@ -24,6 +24,7 @@
     <button class="menu-toggle">☰</button>
     <ul class="menu-items">
       <li><a href="perfil.html">👤 Mi Perfil</a></li>
+      <li><a href="convocatorias.html">📋 Crear Convocatorias</a></li>
       <li><a href="monitorias_login.html">⬅ Volver</a></li>
       <li><a href="#">📞 Contáctanos</a></li>
       <li><a href="#">ℹ Información</a></li>
@@ -44,7 +45,12 @@
 
   <!-- Contenido principal -->
  <main class="gestion-container">
-  <!-- Fila superior: 4 módulos -->
+  <!-- Módulos específicos según rol -->
+  <section id="modulosEspecificos" class="modulos">
+    <!-- Los módulos se cargarán dinámicamente según el rol -->
+  </section>
+
+  <!-- Fila superior: 4 módulos de facultades -->
   <section class="modulos">
     <div class="fila">
       <div class="modulo" style="border: 3px solid #8B0000;">
@@ -170,6 +176,185 @@
       </div>
     </div>
   </section>
-  </body>
+
+  <!-- Scripts -->
+  <script src="api.js"></script>
+  <script>
+    // Verificar autenticación y cargar módulos específicos
+    document.addEventListener('DOMContentLoaded', function() {
+      if (!ApiUtils.isAuthenticated()) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Cargar módulos específicos según el rol
+      loadRoleSpecificModules();
+    });
+
+    function loadRoleSpecificModules() {
+      const modulosContainer = document.getElementById('modulosEspecificos');
+      const userData = ApiUtils.getUserData();
+      
+      if (ApiUtils.isCoordinator()) {
+        // Módulos para coordinador
+        modulosContainer.innerHTML = `
+          <h2 style="color: #8B0000; text-align: center; margin-bottom: 20px;">
+            🎯 Panel de Coordinador Académico
+          </h2>
+          <div class="fila">
+            <div class="modulo" style="border: 3px solid #8B0000; cursor: pointer;" onclick="window.location.href='convocatorias.html'">
+              <div class="contenido-normal">
+                <h2>📋 Gestión de Convocatorias</h2>
+                <p>Crear y administrar convocatorias de monitoria (HU-01 y HU-02)</p>
+              </div>
+              <div class="contenido-hover">
+                <h2>📋 Gestión de Convocatorias</h2>
+                <p>Funcionalidades:</p>
+                <ul>
+                  <li>✅ Crear nuevas convocatorias</li>
+                  <li>📅 Asignar fechas de apertura y cierre</li>
+                  <li>📊 Ver estadísticas</li>
+                  <li>⚙️ Gestionar estados</li>
+                </ul>
+              </div>
+            </div>
+            <div class="modulo" style="border: 3px solid #28a745; cursor: pointer;" onclick="showAlert('Módulo en desarrollo')">
+              <div class="contenido-normal">
+                <h2>👥 Gestión de Monitores</h2>
+                <p>Administrar selección y asignación de monitores</p>
+              </div>
+              <div class="contenido-hover">
+                <h2>👥 Gestión de Monitores</h2>
+                <p>Próximamente:</p>
+                <ul>
+                  <li>📝 Revisar postulaciones</li>
+                  <li>⭐ Evaluar candidatos</li>
+                  <li>✅ Seleccionar monitores</li>
+                  <li>📊 Reportes de desempeño</li>
+                </ul>
+              </div>
+            </div>
+            <div class="modulo" style="border: 3px solid #17a2b8; cursor: pointer;" onclick="showAlert('Módulo en desarrollo')">
+              <div class="contenido-normal">
+                <h2>📊 Reportes y Estadísticas</h2>
+                <p>Informes del programa de monitorias</p>
+              </div>
+              <div class="contenido-hover">
+                <h2>📊 Reportes y Estadísticas</h2>
+                <p>Próximamente:</p>
+                <ul>
+                  <li>📈 Estadísticas de convocatorias</li>
+                  <li>👥 Número de postulantes</li>
+                  <li>⏱️ Tiempos de proceso</li>
+                  <li>📋 Reportes personalizados</li>
+                </ul>
+              </div>
+            </div>
+            <div class="modulo" style="border: 3px solid #6f42c1; cursor: pointer;" onclick="showAlert('Módulo en desarrollo')">
+              <div class="contenido-normal">
+                <h2>⚙️ Configuración</h2>
+                <p>Configuración del sistema de monitorias</p>
+              </div>
+              <div class="contenido-hover">
+                <h2>⚙️ Configuración</h2>
+                <p>Próximamente:</p>
+                <ul>
+                  <li>🏛️ Configurar facultades</li>
+                  <li>📚 Gestionar materias</li>
+                  <li>👤 Administrar usuarios</li>
+                  <li>🔧 Configuraciones generales</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (ApiUtils.isStudent()) {
+        // Módulos para estudiante
+        modulosContainer.innerHTML = `
+          <h2 style="color: #8B0000; text-align: center; margin-bottom: 20px;">
+            🎓 Panel de Estudiante - ${userData.nombre}
+          </h2>
+          <div class="fila">
+            <div class="modulo" style="border: 3px solid #28a745; cursor: pointer;" onclick="window.location.href='convocatorias_estudiante.html'">
+              <div class="contenido-normal">
+                <h2>📋 Convocatorias Disponibles</h2>
+                <p>Ver y postularse a convocatorias de monitoria</p>
+              </div>
+              <div class="contenido-hover">
+                <h2>📋 Convocatorias Disponibles</h2>
+                <p>Funcionalidades:</p>
+                <ul>
+                  <li>👁️ Ver convocatorias activas</li>
+                  <li>✅ Postularse como monitor</li>
+                  <li>📅 Conocer fechas importantes</li>
+                  <li>🔍 Filtrar por materia/semestre</li>
+                </ul>
+              </div>
+            </div>
+            <div class="modulo" style="border: 3px solid #8B0000; cursor: pointer;" onclick="showAlert('Módulo en desarrollo')">
+              <div class="contenido-normal">
+                <h2>📝 Mis Postulaciones</h2>
+                <p>Seguimiento de postulaciones enviadas</p>
+              </div>
+              <div class="contenido-hover">
+                <h2>📝 Mis Postulaciones</h2>
+                <p>Próximamente:</p>
+                <ul>
+                  <li>📊 Estado de postulaciones</li>
+                  <li>📅 Fechas de entrevistas</li>
+                  <li>📋 Resultados de selección</li>
+                  <li>📧 Notificaciones</li>
+                </ul>
+              </div>
+            </div>
+            <div class="modulo" style="border: 3px solid #17a2b8; cursor: pointer;" onclick="showAlert('Módulo en desarrollo')">
+              <div class="contenido-normal">
+                <h2>📚 Mi Actividad como Monitor</h2>
+                <p>Panel de monitores activos</p>
+              </div>
+              <div class="contenido-hover">
+                <h2>📚 Mi Actividad como Monitor</h2>
+                <p>Próximamente:</p>
+                <ul>
+                  <li>⏰ Horarios asignados</li>
+                  <li>👥 Estudiantes a cargo</li>
+                  <li>📝 Reportar sesiones</li>
+                  <li>⭐ Evaluaciones recibidas</li>
+                </ul>
+              </div>
+            </div>
+            <div class="modulo" style="border: 3px solid #ffc107; cursor: pointer;" onclick="showAlert('Módulo en desarrollo')">
+              <div class="contenido-normal">
+                <h2>🆘 Solicitar Monitoria</h2>
+                <p>Solicitar apoyo académico de monitores</p>
+              </div>
+              <div class="contenido-hover">
+                <h2>🆘 Solicitar Monitoria</h2>
+                <p>Próximamente:</p>
+                <ul>
+                  <li>📝 Solicitar apoyo académico</li>
+                  <li>📚 Seleccionar materias</li>
+                  <li>⏰ Agendar sesiones</li>
+                  <li>⭐ Evaluar monitores</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        // Usuario no reconocido
+        modulosContainer.innerHTML = `
+          <div class="alert alert-warning" style="text-align: center; padding: 20px; margin: 20px; border-radius: 10px; background: #fff3cd; border: 1px solid #ffeaa7;">
+            <h3>⚠️ Rol no reconocido</h3>
+            <p>Tu rol de usuario no está configurado correctamente. Contacta al administrador.</p>
+          </div>
+        `;
+      }
+    }
+
+    function showAlert(message) {
+      alert(message);
+    }
+  </script>
 </main>
 </html>

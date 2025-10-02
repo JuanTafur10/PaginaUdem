@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Conectividad</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Test de Conectividad del Backend</h1>
+    
+    <div>
+        <button onclick="testEndpoint()">🚀 Probar Endpoint /api/test</button>
+        <button onclick="testLogin()">🔑 Probar Login</button>
+        <button onclick="testConvocatorias()">📋 Probar Convocatorias</button>
+        <button onclick="clearResults()">🧹 Limpiar</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001/api';
+        
+        function addResult(message, isSuccess = true) {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${isSuccess ? 'success' : 'error'}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> - ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function testEndpoint() {
+            addResult('🔍 Probando endpoint /api/test...');
+            try {
+                const response = await fetch(`${API_BASE}/test`);
+                const data = await response.json();
+                addResult(`✅ Éxito: ${JSON.stringify(data)}`);
+            } catch (error) {
+                addResult(`❌ Error: ${error.message}`, false);
+            }
+        }
+        
+        async function testLogin() {
+            addResult('🔑 Probando login...');
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        correo: 'coordinador@udem.edu.co',
+                        password: '123456'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`✅ Login exitoso: ${data.access_token ? 'Token recibido' : 'Sin token'}`);
+                    
+                    // Guardar token para próximas pruebas
+                    if (data.access_token) {
+                        localStorage.setItem('test_token', data.access_token);
+                    }
+                } else {
+                    const error = await response.json();
+                    addResult(`❌ Error de login: ${error.msg}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ Error de conexión en login: ${error.message}`, false);
+            }
+        }
+        
+        async function testConvocatorias() {
+            addResult('📋 Probando crear convocatoria...');
+            const token = localStorage.getItem('test_token');
+            
+            if (!token) {
+                addResult('❌ No hay token. Haz login primero.', false);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/convocatorias`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        curso: 'Test de Conectividad',
+                        semestre: '2024-2',
+                        requisitos: 'Ninguno - solo prueba'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult(`✅ Convocatoria creada: ID ${data.id}`);
+                } else {
+                    const error = await response.json();
+                    addResult(`❌ Error crear convocatoria: ${error.msg}`, false);
+                }
+            } catch (error) {
+                addResult(`❌ Error de conexión crear convocatoria: ${error.message}`, false);
+            }
+        }
+        
+        // Auto-test al cargar
+        window.onload = function() {
+            addResult('🚀 Test de conectividad iniciado');
+            setTimeout(testEndpoint, 1000);
+        };
+    </script>
+</body>
+</html>

@@ -30,6 +30,7 @@ class EstadoConvocatoria(enum.Enum):
 
 class TipoUsuario(enum.Enum):
     COORDINADOR = "COORDINATOR"
+    PROFESOR = "PROFESSOR"
     ESTUDIANTE = "STUDENT"
 
 # Modelos básicos
@@ -54,6 +55,9 @@ class User(db.Model):
     
     def is_student(self):
         return self.rol == "STUDENT"
+    
+    def is_professor(self):
+        return self.rol == "PROFESSOR"
 
     def to_dict(self):
         return {
@@ -148,8 +152,8 @@ def crear_convocatoria():
     user_id = int(get_jwt_identity())
     user = User.query.get_or_404(user_id)
     
-    if not user.is_coordinator():
-        return jsonify({"msg": "Solo el Coordinador Académico puede crear convocatorias"}), 403
+    if not (user.is_coordinator() or user.is_professor()):
+        return jsonify({"msg": "Solo coordinadores y profesores pueden crear convocatorias"}), 403
     
     data = request.get_json() or {}
     
@@ -191,8 +195,8 @@ def asignar_fechas(id):
     user_id = int(get_jwt_identity())
     user = User.query.get_or_404(user_id)
     
-    if not user.is_coordinator():
-        return jsonify({"msg": "Solo Coordinador Académico puede asignar fechas"}), 403
+    if not (user.is_coordinator() or user.is_professor()):
+        return jsonify({"msg": "Solo coordinadores y profesores pueden asignar fechas"}), 403
     
     convocatoria = Convocatoria.query.get_or_404(id)
     if convocatoria.estado == EstadoConvocatoria.CLOSED:
@@ -282,6 +286,13 @@ if __name__ == "__main__":
             )
             coordinador.set_password("123456")
             
+            profesor = User(
+                correo="profesor@udem.edu.co",
+                nombre="Dr. Pedro Martínez",
+                rol="PROFESSOR"
+            )
+            profesor.set_password("123456")
+            
             estudiante1 = User(
                 correo="estudiante@udem.edu.co", 
                 nombre="Juan Pérez",
@@ -306,15 +317,15 @@ if __name__ == "__main__":
             )
             estudiante3.set_password("123456")
             
-            db.session.add_all([coordinador, estudiante1, estudiante2, estudiante3])
+            db.session.add_all([coordinador, profesor, estudiante1, estudiante2, estudiante3])
             db.session.commit()
             print("✅ Usuarios creados exitosamente")
         else:
             print("✅ Usuarios ya existen en la base de datos")
     
     print("🚀 Iniciando servidor Flask...")
-    print("📍 Backend disponible en: http://localhost:5000")
-    print("🔗 API Base URL: http://localhost:5000/api")
+    print("📍 Backend disponible en: http://localhost:5001")
+    print("🔗 API Base URL: http://localhost:5001/api")
     print("📖 Endpoints disponibles:")
     print("   POST /api/auth/login")
     print("   GET  /api/auth/profile")
@@ -327,6 +338,7 @@ if __name__ == "__main__":
     print()
     print("👥 Usuarios de prueba:")
     print("   📋 coordinador@udem.edu.co / 123456")
+    print("   👨‍🏫 profesor@udem.edu.co / 123456")
     print("   🎓 estudiante@udem.edu.co / 123456")
     print("   🎓 maria@udem.edu.co / 123456")
     print("   🎓 carlos@udem.edu.co / 123456")
@@ -334,4 +346,4 @@ if __name__ == "__main__":
     print("⏹️  Presiona Ctrl+C para detener el servidor")
     print()
     
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
