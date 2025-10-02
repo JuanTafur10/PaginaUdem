@@ -331,6 +331,11 @@
         <!-- Filtros -->
         <div class="filter-container">
             <h3>🔍 Filtrar Convocatorias</h3>
+            <div style="margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap;">
+                <button id="btnViewActivas" class="btn" style="background:#8B0000; color:#fff;" onclick="setView('activas')">Solo Activas</button>
+                <button id="btnViewTodas" class="btn" style="background:#6c757d; color:#fff;" onclick="setView('todas')">Ver Todas</button>
+                <button id="btnRefresh" class="btn" style="background:#17a2b8; color:#fff;" onclick="manualRefresh()">🔄 Actualizar</button>
+            </div>
             <div class="filter-row">
                 <div class="filter-group">
                     <label for="filtroEstado">Estado:</label>
@@ -371,6 +376,8 @@
         // Variables globales
         let todasLasConvocatorias = [];
         let convocatoriasFiltradas = [];
+    let currentView = 'activas';
+    let autoRefreshInterval = null;
         // Mapeo de estados backend (es) -> frontend (en)
         const estadoMap = {
             'borrador': 'draft',
@@ -461,13 +468,32 @@
                 todasLasConvocatorias = normalizarEstados(todasResult.data);
                 const activasNormalizadas = activasResult.success ? normalizarEstados(activasResult.data) : [];
 
-                // Por requerimiento HU: mostrar únicamente las activas inicialmente
-                convocatoriasFiltradas = [...activasNormalizadas];
                 updateStats();
-                displayConvocatorias();
-                if (convocatoriasFiltradas.length === 0) {
-                    showAlert('ℹ️ No hay convocatorias activas en este momento.', 'info');
+
+                // Decidir vista inicial o mantener la actual
+                if (currentView === 'activas') {
+                    if (activasNormalizadas.length > 0) {
+                        convocatoriasFiltradas = [...activasNormalizadas];
+                    } else {
+                        // Fallback: mostrar programadas si no hay activas
+                        const programadas = todasLasConvocatorias.filter(c => c.estado === 'scheduled');
+                        if (programadas.length > 0) {
+                            convocatoriasFiltradas = programadas;
+                            showAlert('ℹ️ No hay activas. Mostrando convocatorias programadas.', 'info');
+                        } else {
+                            convocatoriasFiltradas = [];
+                            showAlert('ℹ️ No hay convocatorias activas ni programadas.', 'info');
+                        }
+                    }
+                } else {
+                    // Vista 'todas'
+                    convocatoriasFiltradas = [...todasLasConvocatorias];
                 }
+
+                applyFilters(); // aplicará filtros y llamará display
+                updateViewButtons();
+
+                setupAutoRefresh();
             } catch (error) {
                 showAlert(`❌ Error inesperado: ${error.message}`, 'error');
             } finally {
@@ -574,8 +600,16 @@
             const filtroEstado = document.getElementById('filtroEstado').value;
             const filtroSemestre = document.getElementById('filtroSemestre').value;
             const filtroCurso = document.getElementById('filtroCurso').value.toLowerCase();
+            // Base según vista
+            let base = [];
+            if (currentView === 'activas') {
+                const activas = todasLasConvocatorias.filter(c => c.estado === 'active');
+                if (activas.length > 0) base = activas; else base = todasLasConvocatorias.filter(c => c.estado === 'scheduled');
+            } else {
+                base = [...todasLasConvocatorias];
+            }
 
-            convocatoriasFiltradas = todasLasConvocatorias.filter(conv => {
+            convocatoriasFiltradas = base.filter(conv => {
                 const matchEstado = !filtroEstado || conv.estado === filtroEstado;
                 const matchSemestre = !filtroSemestre || conv.semestre === filtroSemestre;
                 const matchCurso = !filtroCurso || conv.curso.toLowerCase().includes(filtroCurso);
@@ -584,6 +618,68 @@
             });
 
             displayConvocatorias();
+        }
+
+        function setView(view) {
+            currentView = view;
+            applyFilters();
+            updateViewButtons();
+        }
+
+        function updateViewButtons() {
+            const btnActivas = document.getElementById('btnViewActivas');
+            const btnTodas = document.getElementById('btnViewTodas');
+            if (!btnActivas || !btnTodas) return;
+            if (currentView === 'activas') {
+                btnActivas.style.opacity = '1';
+                btnActivas.disabled = true;
+                btnTodas.style.opacity = '0.7';
+                btnTodas.disabled = false;
+            } else {
+                btnActivas.style.opacity = '0.7';
+                btnActivas.disabled = false;
+                btnTodas.style.opacity = '1';
+                btnTodas.disabled = true;
+            }
+        }
+
+        function manualRefresh() {
+            loadConvocatorias();
+        }
+
+        function setupAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            // Refrescar cada 60s si hay programadas y vista activas
+            const hayProgramadas = todasLasConvocatorias.some(c => c.estado === 'scheduled');
+            if (hayProgramadas) {
+                autoRefreshInterval = setInterval(() => {
+                    // Solo refrescar silenciosamente sin alertas
+                    silentRefresh();
+                }, 60000);
+            }
+        }
+
+        async function silentRefresh() {
+            try {
+                const activasResult = await ApiUtils.getConvocatoriasActivas();
+                const todasResult = await ApiUtils.getConvocatorias();
+                if (!todasResult.success) return;
+                todasLasConvocatorias = normalizarEstados(todasResult.data);
+                if (currentView === 'activas') {
+                    const activas = activasResult.success ? normalizarEstados(activasResult.data) : [];
+                    if (activas.length > 0) {
+                        convocatoriasFiltradas = activas;
+                    } else {
+                        convocatoriasFiltradas = todasLasConvocatorias.filter(c => c.estado === 'scheduled');
+                    }
+                } else {
+                    convocatoriasFiltradas = [...todasLasConvocatorias];
+                }
+                updateStats();
+                applyFilters();
+            } catch (e) {
+                console.log('Silent refresh error', e.message);
+            }
         }
 
         // Función para obtener etiqueta del estado
