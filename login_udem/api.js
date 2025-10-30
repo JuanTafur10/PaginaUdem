@@ -10,6 +10,15 @@ class ApiClient {
         this.serverDetected = false;
     }
 
+    buildQuery(params = {}) {
+        const entries = Object.entries(params || {}).filter(([, value]) => value !== undefined && value !== null && value !== '');
+        if (entries.length === 0) return '';
+        const query = entries
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+            .join('&');
+        return `?${query}`;
+    }
+
     // Detectar servidor disponible
     async detectServer() {
         if (this.serverDetected) return true;
@@ -177,8 +186,32 @@ class ApiClient {
         return await this.request('/convocatorias/activas');
     }
 
-    async obtenerConvocatorias() {
-        return await this.request('/convocatorias');
+    async obtenerConvocatorias(params = {}) {
+        const query = this.buildQuery(params);
+        return await this.request(`/convocatorias${query}`);
+    }
+
+    async postularConvocatoria(convocatoriaId, payload = {}) {
+        return await this.request(`/convocatorias/${convocatoriaId}/postulaciones`, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+    }
+
+    async obtenerPostulaciones(convocatoriaId, params = {}) {
+        const query = this.buildQuery(params);
+        return await this.request(`/convocatorias/${convocatoriaId}/postulaciones${query}`);
+    }
+
+    async obtenerConfigIA() {
+        return await this.request('/ia/config');
+    }
+
+    async actualizarConfigIA(configPayload) {
+        return await this.request('/ia/config', {
+            method: 'PUT',
+            body: JSON.stringify(configPayload)
+        });
     }
 
     async procesarEstados() {
@@ -256,6 +289,30 @@ const ApiUtils = {
         ];
     },
 
+    getUserRole() {
+        return apiClient.getUserRole();
+    },
+
+    getUserData() {
+        return apiClient.getUserData();
+    },
+
+    isAuthenticated() {
+        if (apiClient.isAuthenticated()) {
+            return true;
+        }
+        const storedToken = localStorage.getItem('access_token');
+        if (storedToken) {
+            apiClient.token = storedToken;
+            return true;
+        }
+        return false;
+    },
+
+    logout() {
+        apiClient.logout();
+    },
+
     // Verificar si el usuario es estudiante
     isStudent() {
         return this.getUserRole() === 'STUDENT';
@@ -310,14 +367,18 @@ Posibles soluciones:
     },
 
     // Listar convocatorias
-    async getConvocatorias() {
+    async getConvocatorias(params = {}) {
         try {
-            const response = await apiClient.obtenerConvocatorias();
+            const response = await apiClient.obtenerConvocatorias(params);
             return { success: true, data: response };
         } catch (error) {
             console.error('Error al obtener convocatorias:', error);
             return { success: false, error: error.message };
         }
+    },
+
+    async getConvocatoriasArchivadas() {
+        return await this.getConvocatorias({ archivadas: 'solo' });
     },
 
     // Asignar fechas a convocatoria
@@ -338,6 +399,16 @@ Posibles soluciones:
             return { success: true, data: response };
         } catch (error) {
             console.error('Error al obtener convocatorias activas:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async postularConvocatoria(convocatoriaId, payload = {}) {
+        try {
+            const response = await apiClient.postularConvocatoria(convocatoriaId, payload);
+            return { success: true, data: response };
+        } catch (error) {
+            console.error('Error al postularse:', error);
             return { success: false, error: error.message };
         }
     }

@@ -25,7 +25,7 @@
     <ul class="menu-items">
       <li><a href="perfil.html">👤 Mi Perfil</a></li>
       <li><a href="convocatorias.html">📋 Crear Convocatorias</a></li>
-      <li><a href="monitorias_login.html">⬅ Volver</a></li>
+      <li><a href="#" id="backLink">⬅ Volver</a></li>
       <li><a href="#">📞 Contáctanos</a></li>
       <li><a href="#">ℹ Información</a></li>
       <li><a href="#">⚙ Configuración</a></li>
@@ -187,6 +187,15 @@
         return;
       }
 
+      const backLink = document.getElementById('backLink');
+      if (backLink) {
+        if (ApiUtils.isCoordinator() || ApiUtils.isProfessor()) {
+          backLink.href = 'gestion.html';
+        } else {
+          backLink.href = 'perfil.html';
+        }
+      }
+
       // Cargar módulos específicos según el rol
       loadRoleSpecificModules();
     });
@@ -218,7 +227,7 @@
                 </ul>
               </div>
             </div>
-            <div class="modulo" style="border: 3px solid #28a745; cursor: pointer;" onclick="showAlert('Módulo en desarrollo')">
+            <div class="modulo" style="border: 3px solid #28a745; cursor: pointer;" onclick="window.location.href='postulaciones.html'">
               <div class="contenido-normal">
                 <h2>👥 Gestión de Monitores</h2>
                 <p>Administrar selección y asignación de monitores</p>
@@ -291,7 +300,7 @@
                 </ul>
               </div>
             </div>
-            <div class="modulo" style="border: 3px solid #8B0000; cursor: pointer;" onclick="showAlert('Módulo en desarrollo')">
+            <div class="modulo" style="border: 3px solid #8B0000; cursor: pointer;" onclick="window.location.href='postulaciones.html'">
               <div class="contenido-normal">
                 <h2>📝 Mis Postulaciones</h2>
                 <p>Seguimiento de postulaciones enviadas</p>

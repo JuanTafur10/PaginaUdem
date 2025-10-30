@@ -210,8 +210,8 @@ body, html {
 
 /* Menú lateral */
 .menu-lateral {
-  position: absolute;
-  top: 180px; /* bajado para mejor posicionamiento */
+  position: fixed;
+  top: 140px;
   left: 20px;
   z-index: 1000;
 }

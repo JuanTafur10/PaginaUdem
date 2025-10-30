@@ -70,6 +70,11 @@
             color: white;
         }
 
+        .estado-archived {
+            background: #343a40;
+            color: white;
+        }
+
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
@@ -292,9 +297,9 @@
         <button class="menu-toggle">☰</button>
         <ul class="menu-items">
             <li><a href="perfil.html">👤 Mi Perfil</a></li>
-            <li><a href="monitorias_login.html">⬅ Volver</a></li>
+            <li><a href="monitorias.html">⬅ Volver</a></li>
             <li><a href="convocatorias_estudiante.html" class="active">📋 Convocatorias</a></li>
-            <li><a href="#">📚 Mis Postulaciones</a></li>
+            <li><a href="postulaciones.html">📚 Mis Postulaciones</a></li>
             <li><a href="#">📞 Contáctanos</a></li>
         </ul>
     </nav>
@@ -326,6 +331,10 @@
                 <div class="stat-number" id="convocatoriasProgramadas">0</div>
                 <div class="stat-label">Programadas</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-number" id="convocatoriasArchivadas">0</div>
+                <div class="stat-label">Archivadas</div>
+            </div>
         </div>
 
         <!-- Filtros -->
@@ -334,6 +343,7 @@
             <div style="margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap;">
                 <button id="btnViewActivas" class="btn" style="background:#8B0000; color:#fff;" onclick="setView('activas')">Solo Activas</button>
                 <button id="btnViewTodas" class="btn" style="background:#6c757d; color:#fff;" onclick="setView('todas')">Ver Todas</button>
+                <button id="btnViewArchivadas" class="btn" style="background:#343a40; color:#fff;" onclick="setView('archivadas')">Archivadas</button>
                 <button id="btnRefresh" class="btn" style="background:#17a2b8; color:#fff;" onclick="manualRefresh()">🔄 Actualizar</button>
             </div>
             <div class="filter-row">
@@ -344,6 +354,7 @@
                         <option value="active">Activas</option>
                         <option value="scheduled">Programadas</option>
                         <option value="draft">Borradores</option>
+                        <option value="archived">Archivadas</option>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -374,21 +385,25 @@
     <script src="api.js"></script>
     <script>
         // Variables globales
-        let todasLasConvocatorias = [];
-        let convocatoriasFiltradas = [];
+    let todasLasConvocatorias = [];
+    let convocatoriasArchivadas = [];
+    let convocatoriasFiltradas = [];
     let currentView = 'activas';
     let autoRefreshInterval = null;
+    let userData = null;
         // Mapeo de estados backend (es) -> frontend (en)
         const estadoMap = {
             'borrador': 'draft',
             'programada': 'scheduled',
             'activa': 'active',
             'cerrada': 'closed',
+            'archivada': 'archived',
             // Aceptar también los ya normalizados por compatibilidad
             'draft': 'draft',
             'scheduled': 'scheduled',
             'active': 'active',
-            'closed': 'closed'
+            'closed': 'closed',
+            'archived': 'archived'
         };
 
         function normalizarEstados(lista) {
@@ -406,7 +421,7 @@
             }
 
             // Mostrar información del usuario
-            const userData = ApiUtils.getUserData();
+            userData = ApiUtils.getUserData();
             document.getElementById('userInfo').textContent = `${userData.nombre} (${userData.rol})`;
 
             // Mostrar botón de gestión solo para coordinadores y profesores
@@ -454,45 +469,22 @@
             listElement.innerHTML = '';
 
             try {
-                // Primero llamar endpoint de activas (esto actualiza estados en backend) y obtener activas
                 const activasResult = await ApiUtils.getConvocatoriasActivas();
-                // Luego obtener todas para estadísticas y filtros futuros
-                const todasResult = await ApiUtils.getConvocatorias();
+                const todasResult = await ApiUtils.getConvocatorias({ archivadas: 'false' });
+                const archivadasResult = await ApiUtils.getConvocatoriasArchivadas();
 
                 if (!todasResult.success) {
                     showAlert(`❌ Error al cargar convocatorias: ${todasResult.error}`, 'error');
                     return;
                 }
 
-                // Normalizar estados (Spanish -> English)
                 todasLasConvocatorias = normalizarEstados(todasResult.data);
+                convocatoriasArchivadas = archivadasResult.success ? normalizarEstados(archivadasResult.data) : [];
                 const activasNormalizadas = activasResult.success ? normalizarEstados(activasResult.data) : [];
 
-                updateStats();
-
-                // Decidir vista inicial o mantener la actual
-                if (currentView === 'activas') {
-                    if (activasNormalizadas.length > 0) {
-                        convocatoriasFiltradas = [...activasNormalizadas];
-                    } else {
-                        // Fallback: mostrar programadas si no hay activas
-                        const programadas = todasLasConvocatorias.filter(c => c.estado === 'scheduled');
-                        if (programadas.length > 0) {
-                            convocatoriasFiltradas = programadas;
-                            showAlert('ℹ️ No hay activas. Mostrando convocatorias programadas.', 'info');
-                        } else {
-                            convocatoriasFiltradas = [];
-                            showAlert('ℹ️ No hay convocatorias activas ni programadas.', 'info');
-                        }
-                    }
-                } else {
-                    // Vista 'todas'
-                    convocatoriasFiltradas = [...todasLasConvocatorias];
-                }
-
-                applyFilters(); // aplicará filtros y llamará display
+                updateStats({ activas: activasNormalizadas.length });
                 updateViewButtons();
-
+                applyFilters();
                 setupAutoRefresh();
             } catch (error) {
                 showAlert(`❌ Error inesperado: ${error.message}`, 'error');
@@ -502,14 +494,16 @@
         }
 
         // Actualizar estadísticas
-        function updateStats() {
+        function updateStats(extra = {}) {
             const total = todasLasConvocatorias.length;
-            const activas = todasLasConvocatorias.filter(c => c.estado === 'active').length;
+            const activas = extra.activas !== undefined ? extra.activas : todasLasConvocatorias.filter(c => c.estado === 'active').length;
             const programadas = todasLasConvocatorias.filter(c => c.estado === 'scheduled').length;
+            const archivadas = convocatoriasArchivadas.length;
 
             document.getElementById('totalConvocatorias').textContent = total;
             document.getElementById('convocatoriasActivas').textContent = activas;
             document.getElementById('convocatoriasProgramadas').textContent = programadas;
+            document.getElementById('convocatoriasArchivadas').textContent = archivadas;
         }
 
         // Mostrar convocatorias
@@ -529,6 +523,7 @@
             const convocatoriasHTML = convocatoriasFiltradas.map(conv => {
                 const puedePostular = conv.estado === 'active';
                 const esProximaApertura = conv.estado === 'scheduled';
+                const esArchivada = conv.estado === 'archived';
                 
                 return `
                     <div class="convocatoria-card">
@@ -582,6 +577,10 @@
                                 <button class="btn btn-info" disabled>
                                     ⏰ Próximamente disponible
                                 </button>
+                            ` : esArchivada ? `
+                                <button class="btn btn-info" disabled>
+                                    🗂️ Convocatoria archivada
+                                </button>
                             ` : `
                                 <button class="btn btn-info" disabled>
                                     ℹ️ Ver información
@@ -596,15 +595,29 @@
         }
 
         // Aplicar filtros
-        function applyFilters() {
+    function applyFilters(silent = false) {
             const filtroEstado = document.getElementById('filtroEstado').value;
             const filtroSemestre = document.getElementById('filtroSemestre').value;
             const filtroCurso = document.getElementById('filtroCurso').value.toLowerCase();
             // Base según vista
             let base = [];
-            if (currentView === 'activas') {
+            if (currentView === 'archivadas') {
+                base = [...convocatoriasArchivadas];
+                if (!silent && base.length === 0) {
+                    showAlert('ℹ️ No hay convocatorias archivadas por ahora.', 'info');
+                }
+            } else if (currentView === 'activas') {
                 const activas = todasLasConvocatorias.filter(c => c.estado === 'active');
-                if (activas.length > 0) base = activas; else base = todasLasConvocatorias.filter(c => c.estado === 'scheduled');
+                if (activas.length > 0) {
+                    base = activas;
+                } else {
+                    base = todasLasConvocatorias.filter(c => c.estado === 'scheduled');
+                    if (!silent && base.length > 0) {
+                        showAlert('ℹ️ No hay activas. Mostrando convocatorias programadas.', 'info');
+                    } else if (!silent) {
+                        showAlert('ℹ️ No hay convocatorias activas ni programadas.', 'info');
+                    }
+                }
             } else {
                 base = [...todasLasConvocatorias];
             }
@@ -622,24 +635,30 @@
 
         function setView(view) {
             currentView = view;
-            applyFilters();
-            updateViewButtons();
+            loadConvocatorias();
         }
 
         function updateViewButtons() {
             const btnActivas = document.getElementById('btnViewActivas');
             const btnTodas = document.getElementById('btnViewTodas');
-            if (!btnActivas || !btnTodas) return;
+            const btnArchivadas = document.getElementById('btnViewArchivadas');
+            if (!btnActivas || !btnTodas || !btnArchivadas) return;
+
+            const buttons = [btnActivas, btnTodas, btnArchivadas];
+            buttons.forEach(btn => {
+                btn.style.opacity = '0.7';
+                btn.disabled = false;
+            });
+
             if (currentView === 'activas') {
                 btnActivas.style.opacity = '1';
                 btnActivas.disabled = true;
-                btnTodas.style.opacity = '0.7';
-                btnTodas.disabled = false;
-            } else {
-                btnActivas.style.opacity = '0.7';
-                btnActivas.disabled = false;
+            } else if (currentView === 'todas') {
                 btnTodas.style.opacity = '1';
                 btnTodas.disabled = true;
+            } else if (currentView === 'archivadas') {
+                btnArchivadas.style.opacity = '1';
+                btnArchivadas.disabled = true;
             }
         }
 
@@ -662,21 +681,16 @@
         async function silentRefresh() {
             try {
                 const activasResult = await ApiUtils.getConvocatoriasActivas();
-                const todasResult = await ApiUtils.getConvocatorias();
+                const todasResult = await ApiUtils.getConvocatorias({ archivadas: 'false' });
                 if (!todasResult.success) return;
+                const archivadasResult = await ApiUtils.getConvocatoriasArchivadas();
+
                 todasLasConvocatorias = normalizarEstados(todasResult.data);
-                if (currentView === 'activas') {
-                    const activas = activasResult.success ? normalizarEstados(activasResult.data) : [];
-                    if (activas.length > 0) {
-                        convocatoriasFiltradas = activas;
-                    } else {
-                        convocatoriasFiltradas = todasLasConvocatorias.filter(c => c.estado === 'scheduled');
-                    }
-                } else {
-                    convocatoriasFiltradas = [...todasLasConvocatorias];
-                }
-                updateStats();
-                applyFilters();
+                convocatoriasArchivadas = archivadasResult.success ? normalizarEstados(archivadasResult.data) : convocatoriasArchivadas;
+                const activasNormalizadas = activasResult.success ? normalizarEstados(activasResult.data) : [];
+
+                updateStats({ activas: activasNormalizadas.length });
+                applyFilters(true);
             } catch (e) {
                 console.log('Silent refresh error', e.message);
             }
@@ -688,7 +702,8 @@
                 'draft': 'Borrador',
                 'scheduled': 'Programada',
                 'active': '🟢 Activa',
-                'closed': 'Cerrada'
+                'closed': 'Cerrada',
+                'archived': '🗂️ Archivada'
             };
             return labels[estado] || estado;
         }
@@ -705,12 +720,54 @@
             });
         }
 
-        // Función para postularse (simulada)
-        function postular(convocatoriaId) {
-            const conv = todasLasConvocatorias.find(c => c.id === convocatoriaId);
-            if (conv) {
-                showAlert(`🎓 Funcionalidad de postulación en desarrollo. Convocatoria: ${conv.curso}`, 'info');
-                // Aquí se implementaría la lógica real de postulación
+        // Función para postularse
+        async function postular(convocatoriaId) {
+            const conv = [...todasLasConvocatorias, ...convocatoriasArchivadas].find(c => c.id === convocatoriaId);
+            if (!conv) {
+                showAlert('❌ Convocatoria no encontrada', 'error');
+                return;
+            }
+
+            if (conv.estado !== 'active') {
+                showAlert('⚠️ Solo puedes postularte a convocatorias activas.', 'error');
+                return;
+            }
+
+            try {
+                ApiUtils.showLoadingModal();
+                const payload = {
+                    formulario: {
+                        estudiante_codigo: userData?.codigo || '',
+                        semestre: userData?.semestre || '',
+                        promedio: userData?.promedio || '',
+                    }
+                };
+
+                const resultado = await ApiUtils.postularConvocatoria(convocatoriaId, payload);
+                ApiUtils.hideLoadingModal();
+
+                if (!resultado.success) {
+                    showAlert(`❌ ${resultado.error}`, 'error');
+                    return;
+                }
+
+                const data = resultado.data || {};
+                const postulacion = data.postulacion || {};
+                const estado = postulacion.estado;
+
+                if (estado === 'eligible') {
+                    const puntaje = postulacion.puntaje ? postulacion.puntaje.toFixed(2) : 'N/A';
+                    showAlert(`✅ Postulación registrada. Puntaje preliminar: ${puntaje}`, 'info');
+                } else {
+                    const razones = (data.descartados && data.descartados[0] && data.descartados[0].razones) || [];
+                    const mensaje = Array.isArray(razones) ? razones.join('; ') : razones;
+                    showAlert(`⚠️ Postulación registrada pero no elegible: ${mensaje || 'Revisa los requisitos.'}`, 'error');
+                }
+
+                await loadConvocatorias();
+            } catch (error) {
+                ApiUtils.hideLoadingModal();
+                showAlert(`❌ Error al postularse: ${error.message}`, 'error');
             }
         }
 

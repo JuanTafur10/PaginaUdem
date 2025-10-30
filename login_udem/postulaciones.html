@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel de Postulaciones - UdeM</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        .postulaciones-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 24px;
+        }
+
+        .panel-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .panel-card h2 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: #8B0000;
+        }
+
+        .panel-card p.description {
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #343a40;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: #8B0000;
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-link {
+            background: transparent;
+            color: #8B0000;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #ffe082; color: #8a6d3b; }
+        .status-eligible { background: #81c784; color: #1b5e20; }
+        .status-ineligible { background: #ef9a9a; color: #b71c1c; }
+
+        .postulacion-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #ffffff 0%, #f9f9fb 100%);
+        }
+
+        .postulacion-card h3 {
+            margin: 0 0 8px;
+            color: #8B0000;
+        }
+
+        .postulacion-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .empty-state {
+            padding: 24px;
+            text-align: center;
+            border: 2px dashed #ced4da;
+            border-radius: 12px;
+            color: #6c757d;
+        }
+
+        .alert-box {
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .alert-error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .alert-info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .ranking-table th,
+        .ranking-table td {
+            border: 1px solid #e0e0e0;
+            padding: 8px;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .ranking-table th {
+            background: #f1f1f1;
+            color: #8B0000;
+        }
+
+        .file-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-name {
+            font-size: 13px;
+            color: #555;
+        }
+
+        @media (max-width: 992px) {
+            .panel-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <span class="mini-text-vertical">MinEducación</span>
+        <img src="logo.png" alt="Logo UdeM" class="logo" />
+        <div style="margin-left: auto; padding-right: 20px; text-align: right;">
+            <span id="userInfo" style="display:block; color:#8B0000; font-weight:bold;"></span>
+            <button onclick="logout()" style="margin-top:6px; padding:5px 10px; background:#dc3545; color:#fff; border:none; border-radius:4px; cursor:pointer;">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <h1 class="titulo-gestion">Panel de Postulaciones</h1>
+    <hr class="divider">
+
+    <nav class="menu-lateral">
+        <button class="menu-toggle">☰</button>
+        <ul class="menu-items">
+            <li><a href="perfil.html">👤 Mi Perfil</a></li>
+            <li><a href="monitorias.html">⬅ Volver</a></li>
+            <li><a href="convocatorias_estudiante.html">📋 Convocatorias</a></li>
+            <li><a href="convocatorias.html">⚙ Gestión de Convocatorias</a></li>
+        </ul>
+    </nav>
+
+    <main class="postulaciones-container">
+        <div id="alertContainer"></div>
+        <div class="panel-grid">
+            <section class="panel-card" id="formPanel" style="display:none;">
+                <h2>Crear Postulación</h2>
+                <p class="description">Selecciona una convocatoria activa, añade tu motivación y adjunta tu hoja de vida.</p>
+                <form id="postulacionForm">
+                    <div class="form-group">
+                        <label for="convocatoriaSelect">Convocatoria</label>
+                        <select id="convocatoriaSelect" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="mensajePostulacion">Motivación</label>
+                        <textarea id="mensajePostulacion" placeholder="Cuenta brevemente por qué quieres ser monitor"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="file-label" for="cvFile">Adjuntar CV (PDF o DOC)</label>
+                        <input type="file" id="cvFile" accept=".pdf,.doc,.docx" />
+                        <span id="cvFileName" class="file-name"></span>
+                    </div>
+                    <div class="actions">
+                        <button type="submit" class="btn-primary">Enviar Postulación</button>
+                        <button type="button" class="btn-secondary" id="resetForm">Limpiar</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="panel-card" id="resumenPanel">
+                <h2 id="resumenTitulo">Resumen de Postulaciones</h2>
+                <p class="description" id="resumenDescripcion"></p>
+                <div class="form-group">
+                    <label for="convocatoriaFiltro">Seleccionar Convocatoria</label>
+                    <select id="convocatoriaFiltro"></select>
+                </div>
+                <div class="actions" style="margin-bottom:16px;">
+                    <button class="btn-secondary" id="reloadPostulaciones">Actualizar listado</button>
+                    <button class="btn-link" id="verRanking" style="display:none;">Ver ranking IA</button>
+                </div>
+                <div id="postulacionesList">
+                    <div class="empty-state">Selecciona una convocatoria para visualizar las postulaciones.</div>
+                </div>
+                <div id="rankingContainer" style="margin-top: 20px; display:none;"></div>
+                <div id="reporteDescartes" style="margin-top: 20px;"></div>
+            </section>
+        </div>
+    </main>
+
+    <script src="api.js"></script>
+    <script>
+        let rolUsuario = null;
+        let userData = null;
+        let convocatoriasDisponibles = [];
+        let convocatoriaSeleccionada = null;
+        let ultimoRanking = null;
+        let esperandoEnvio = false;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const toggle = document.querySelector('.menu-toggle');
+            const menu = document.querySelector('.menu-items');
+            toggle.addEventListener('click', () => {
+                menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+            });
+
+            if (!ApiUtils.isAuthenticated()) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            rolUsuario = ApiUtils.getUserRole();
+            userData = ApiUtils.getUserData();
+
+            if (!userData) {
+                try {
+                    const perfil = await apiClient.getProfile();
+                    userData = perfil;
+                    localStorage.setItem('user_data', JSON.stringify(perfil));
+                    if (perfil.rol) {
+                        localStorage.setItem('user_rol', perfil.rol);
+                        rolUsuario = perfil.rol;
+                    }
+                } catch (error) {
+                    console.warn('No fue posible refrescar el perfil del usuario:', error.message);
+                }
+            }
+
+            await apiClient.detectServer();
+            actualizarEncabezado();
+            prepararPanelesSegunRol();
+            configurarEventos();
+            await cargarConvocatorias();
+        });
+
+        function actualizarEncabezado() {
+            const info = document.getElementById('userInfo');
+            const nombre = userData && userData.nombre ? userData.nombre : 'Usuario';
+            const rolLabel = rolUsuario === 'COORDINATOR' ? 'Coordinador Académico'
+                            : rolUsuario === 'PROFESSOR' ? 'Profesor'
+                            : 'Estudiante';
+            info.textContent = `${nombre} · ${rolLabel}`;
+        }
+
+        function prepararPanelesSegunRol() {
+            const formPanel = document.getElementById('formPanel');
+            const resumenTitulo = document.getElementById('resumenTitulo');
+            const resumenDescripcion = document.getElementById('resumenDescripcion');
+            const verRankingBtn = document.getElementById('verRanking');
+
+            if (rolUsuario === 'STUDENT') {
+                formPanel.style.display = 'block';
+                resumenTitulo.textContent = 'Mis Postulaciones';
+                resumenDescripcion.textContent = 'Consulta el estado de tus postulaciones por convocatoria y revisa los resultados generados por la IA.';
+                verRankingBtn.style.display = 'none';
+            } else {
+                formPanel.style.display = 'none';
+                resumenTitulo.textContent = 'Gestión de Postulaciones';
+                resumenDescripcion.textContent = 'Selecciona una convocatoria para revisar todas las postulaciones recibidas, ranking de IA y descartes.';
+                if (rolUsuario === 'COORDINATOR' || rolUsuario === 'PROFESSOR') {
+                    verRankingBtn.style.display = 'inline';
+                }
+            }
+        }
+
+        function configurarEventos() {
+            const selectConvocatoria = document.getElementById('convocatoriaFiltro');
+            const form = document.getElementById('postulacionForm');
+            const resetBtn = document.getElementById('resetForm');
+            const reloadBtn = document.getElementById('reloadPostulaciones');
+            const verRankingBtn = document.getElementById('verRanking');
+            const fileInput = document.getElementById('cvFile');
+
+            selectConvocatoria.addEventListener('change', async (event) => {
+                convocatoriaSeleccionada = event.target.value ? Number(event.target.value) : null;
+                await cargarPostulaciones();
+            });
+
+            if (form) {
+                form.addEventListener('submit', manejarEnvioPostulacion);
+            }
+
+            if (resetBtn) {
+                resetBtn.addEventListener('click', limpiarFormulario);
+            }
+
+            reloadBtn.addEventListener('click', async () => {
+                await cargarConvocatorias();
+                await cargarPostulaciones(true);
+            });
+
+            verRankingBtn.addEventListener('click', () => {
+                const ranking = document.getElementById('rankingContainer');
+                if (ranking.style.display === 'none') {
+                    ranking.style.display = 'block';
+                    verRankingBtn.textContent = 'Ocultar ranking IA';
+                } else {
+                    ranking.style.display = 'none';
+                    verRankingBtn.textContent = 'Ver ranking IA';
+                }
+            });
+
+            fileInput.addEventListener('change', () => {
+                const label = document.getElementById('cvFileName');
+                const file = fileInput.files && fileInput.files[0];
+                label.textContent = file ? file.name : '';
+            });
+        }
+
+        async function cargarConvocatorias() {
+            try {
+                const params = {};
+                if (rolUsuario !== 'COORDINATOR' && rolUsuario !== 'PROFESSOR') {
+                    params.estado = 'active';
+                }
+                params.lang = 'en';
+
+                const result = await ApiUtils.getConvocatorias(params);
+                if (!result.success) {
+                    lanzarAlerta(result.error, 'error');
+                    return;
+                }
+
+                convocatoriasDisponibles = result.data || [];
+                actualizarSelectoresConvocatoria();
+            } catch (error) {
+                lanzarAlerta(error.message, 'error');
+            }
+        }
+
+        function actualizarSelectoresConvocatoria() {
+            const selectForm = document.getElementById('convocatoriaSelect');
+            const selectFiltro = document.getElementById('convocatoriaFiltro');
+
+            const optionsHtml = ['<option value="">Selecciona una convocatoria</option>'];
+            convocatoriasDisponibles.forEach((conv) => {
+                optionsHtml.push(`<option value="${conv.id}">${conv.curso} · ${formatearEstadoConvocatoria(conv.estado)}</option>`);
+            });
+
+            selectFiltro.innerHTML = optionsHtml.join('');
+            if (selectForm) {
+                selectForm.innerHTML = optionsHtml.join('');
+            }
+
+            if (convocatoriasDisponibles.length > 0) {
+                const primera = convocatoriasDisponibles[0];
+                selectFiltro.value = primera.id;
+                if (selectForm) {
+                    selectForm.value = primera.id;
+                }
+                convocatoriaSeleccionada = Number(primera.id);
+                cargarPostulaciones();
+            } else {
+                convocatoriaSeleccionada = null;
+                document.getElementById('postulacionesList').innerHTML = '<div class="empty-state">No hay convocatorias disponibles en este momento.</div>';
+                document.getElementById('rankingContainer').style.display = 'none';
+                document.getElementById('rankingContainer').innerHTML = '';
+                document.getElementById('reporteDescartes').innerHTML = '';
+            }
+        }
+
+        async function cargarPostulaciones(force = false) {
+            if (!convocatoriaSeleccionada) {
+                document.getElementById('postulacionesList').innerHTML = '<div class="empty-state">Selecciona una convocatoria para visualizar las postulaciones.</div>';
+                document.getElementById('rankingContainer').style.display = 'none';
+                document.getElementById('rankingContainer').innerHTML = '';
+                document.getElementById('reporteDescartes').innerHTML = '';
+                return;
+            }
+
+            try {
+                const data = await apiClient.obtenerPostulaciones(convocatoriaSeleccionada);
+                renderizarPostulaciones(data);
+
+                if (rolUsuario === 'COORDINATOR' || rolUsuario === 'PROFESSOR') {
+                    const rankingData = await apiClient.obtenerPostulaciones(convocatoriaSeleccionada, { view: 'ranking' });
+                    ultimoRanking = rankingData.ranking || [];
+                    renderizarRanking();
+                    renderizarReporteDescartes(data.reporte_descartes);
+                } else {
+                    ultimoRanking = null;
+                    document.getElementById('rankingContainer').style.display = 'none';
+                    document.getElementById('rankingContainer').innerHTML = '';
+                    document.getElementById('reporteDescartes').innerHTML = '';
+                }
+            } catch (error) {
+                lanzarAlerta(error.message, 'error');
+            }
+        }
+
+        function renderizarPostulaciones(data) {
+            const contenedor = document.getElementById('postulacionesList');
+            const postulaciones = (data && data.postulaciones) ? data.postulaciones : [];
+
+            if (postulaciones.length === 0) {
+                contenedor.innerHTML = '<div class="empty-state">No se encontraron postulaciones para esta convocatoria.</div>';
+                return;
+            }
+
+            const cards = postulaciones.map((post) => {
+                const estadoClase = post.estado === 'eligible' ? 'status-eligible'
+                                  : post.estado === 'ineligible' ? 'status-ineligible'
+                                  : 'status-pending';
+                const detalles = [];
+
+                if (post.puntaje) {
+                    detalles.push(`<strong>Puntaje IA:</strong> ${Number(post.puntaje).toFixed(2)}`);
+                }
+                if (post.resultado) {
+                    detalles.push(`<strong>Resultado:</strong> ${post.resultado}`);
+                }
+                if (post.razones_rechazo) {
+                    detalles.push(`<strong>Observaciones:</strong> ${post.razones_rechazo}`);
+                }
+
+                const fechaCreacion = post.created_at ? new Date(post.created_at).toLocaleString('es-ES') : 'Sin registro';
+                const datosFormulario = post.datos_formulario && post.datos_formulario.comentario
+                    ? `<p><strong>Motivación:</strong> ${post.datos_formulario.comentario}</p>`
+                    : '';
+
+                const soporteCV = post.datos_soportes && post.datos_soportes.cvNombre
+                    ? `<p><strong>CV adjunto:</strong> ${post.datos_soportes.cvNombre}</p>`
+                    : '';
+
+                return `
+                    <div class="postulacion-card">
+                        <h3>Postulación #${post.id}</h3>
+                        <div class="postulacion-meta">
+                            <span><strong>Creada:</strong> ${fechaCreacion}</span>
+                            <span class="status-badge ${estadoClase}">${mapearEstadoPostulacion(post.estado)}</span>
+                        </div>
+                        ${datosFormulario}
+                        ${soporteCV}
+                        ${detalles.length ? `<div style="margin-top:8px; font-size:13px; color:#555;">${detalles.join('<br>')}</div>` : ''}
+                    </div>
+                `;
+            });
+
+            contenedor.innerHTML = cards.join('');
+        }
+
+        function renderizarRanking() {
+            const rankingContainer = document.getElementById('rankingContainer');
+            if (!ultimoRanking || ultimoRanking.length === 0) {
+                rankingContainer.style.display = 'none';
+                rankingContainer.innerHTML = '';
+                return;
+            }
+
+            const filas = ultimoRanking.map((item, index) => {
+                const estudiante = item.estudiante || {};
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${estudiante.nombre || 'Sin nombre'}</td>
+                        <td>${estudiante.codigo || '-'}</td>
+                        <td>${Number(item.puntaje || 0).toFixed(2)}</td>
+                        <td>${item.resultado || 'Pendiente'}</td>
+                    </tr>
+                `;
+            });
+
+            rankingContainer.innerHTML = `
+                <div class="panel-card" style="margin-top: 0;">
+                    <h2>Ranking IA</h2>
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Estudiante</th>
+                                <th>Código</th>
+                                <th>Puntaje</th>
+                                <th>Resultado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filas.join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            rankingContainer.style.display = 'block';
+        }
+
+        function renderizarReporteDescartes(reporte) {
+            const contenedor = document.getElementById('reporteDescartes');
+            if (!reporte || !reporte.contenido || !reporte.contenido.descartados) {
+                contenedor.innerHTML = '';
+                return;
+            }
+
+            const descartes = reporte.contenido.descartados;
+            const items = descartes.map((desc) => {
+                const razones = Array.isArray(desc.razones) ? desc.razones.join('; ') : desc.razones;
+                return `<li>Postulación ${desc.postulacion_id || '-'} · Estudiante ${desc.estudiante_id}: ${razones}</li>`;
+            }).join('');
+
+            contenedor.innerHTML = `
+                <div class="panel-card" style="margin-top: 16px; background: #fff7f7; border-color: #f5c6cb;">
+                    <h2>Reporte de descartes (${reporte.periodo})</h2>
+                    <ul style="padding-left: 20px; color:#721c24;">${items}</ul>
+                </div>
+            `;
+        }
+
+        async function manejarEnvioPostulacion(event) {
+            event.preventDefault();
+            if (esperandoEnvio) return;
+
+            const select = document.getElementById('convocatoriaSelect');
+            const mensaje = document.getElementById('mensajePostulacion').value.trim();
+            const fileInput = document.getElementById('cvFile');
+
+            if (!select.value) {
+                lanzarAlerta('Selecciona una convocatoria antes de enviar la postulación.', 'error');
+                return;
+            }
+
+            const payload = {
+                formulario: {}
+            };
+            if (mensaje) {
+                payload.formulario.comentario = mensaje;
+            }
+
+            const file = fileInput.files && fileInput.files[0];
+            if (file) {
+                try {
+                    const base64 = await leerArchivoComoBase64(file);
+                    payload.soportes = {
+                        cvNombre: file.name,
+                        cvBase64: base64
+                    };
+                } catch (error) {
+                    lanzarAlerta('No se pudo procesar el archivo seleccionado.', 'error');
+                    return;
+                }
+            }
+
+            esperandoEnvio = true;
+            try {
+                const resultado = await ApiUtils.postularConvocatoria(Number(select.value), payload);
+                if (resultado.success) {
+                    lanzarAlerta('Postulación enviada correctamente.', 'success');
+                    limpiarFormulario();
+                    convocatoriaSeleccionada = Number(select.value);
+                    document.getElementById('convocatoriaFiltro').value = select.value;
+                    await cargarPostulaciones(true);
+                } else {
+                    lanzarAlerta(resultado.error || 'No se pudo crear la postulación.', 'error');
+                }
+            } catch (error) {
+                lanzarAlerta(error.message, 'error');
+            } finally {
+                esperandoEnvio = false;
+            }
+        }
+
+        function limpiarFormulario() {
+            const form = document.getElementById('postulacionForm');
+            if (form) {
+                form.reset();
+            }
+            document.getElementById('cvFileName').textContent = '';
+        }
+
+        function lanzarAlerta(mensaje, tipo = 'info') {
+            const contenedor = document.getElementById('alertContainer');
+            const clase = tipo === 'success' ? 'alert-success' : tipo === 'error' ? 'alert-error' : 'alert-info';
+            contenedor.innerHTML = `<div class="alert-box ${clase}">${mensaje}</div>`;
+            setTimeout(() => {
+                contenedor.innerHTML = '';
+            }, 5000);
+        }
+
+        function formatearEstadoConvocatoria(estado) {
+            const map = {
+                draft: 'Borrador',
+                scheduled: 'Programada',
+                active: 'Activa',
+                closed: 'Cerrada',
+                archived: 'Archivada',
+                borrador: 'Borrador',
+                programada: 'Programada',
+                activa: 'Activa',
+                cerrada: 'Cerrada',
+                archivada: 'Archivada'
+            };
+            return map[estado] || estado;
+        }
+
+        function mapearEstadoPostulacion(estado) {
+            const map = {
+                pending: 'En validación',
+                eligible: 'Elegible',
+                ineligible: 'No elegible',
+                archived: 'Archivada'
+            };
+            return map[estado] || estado;
+        }
+
+        function logout() {
+            ApiUtils.logout();
+            window.location.href = 'index.html';
+        }
+
+        function leerArchivoComoBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -221,7 +221,7 @@
         <button class="menu-toggle">☰</button>
         <ul class="menu-items">
             <li><a href="perfil.html">👤 Mi Perfil</a></li>
-            <li><a href="monitorias_login.html">⬅ Volver</a></li>
+            <li><a href="monitorias.html">⬅ Volver</a></li>
             <li><a href="convocatorias.html" class="active">📋 Convocatorias</a></li>
             <li><a href="#">📊 Reportes</a></li>
             <li><a href="#">⚙ Configuración</a></li>
@@ -332,7 +332,7 @@
             if (!ApiUtils.isCoordinator()) {
                 showAlert('Solo los coordinadores pueden acceder a esta página', 'error');
                 setTimeout(() => {
-                    window.location.href = 'monitorias_login.html';
+                    window.location.href = 'monitorias.html';
                 }, 2000);
                 return;
             }
