@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificaciones - UdeM</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .notificaciones-container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .notifications-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .filter-group button {
+            margin-right: 8px;
+            padding: 10px 18px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            background: #f1f1f1;
+            font-weight: bold;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .filter-group button.active {
+            background: #8B0000;
+            color: white;
+        }
+
+        .notification-card {
+            border-left: 4px solid #8B0000;
+            background: #fdfdfd;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .notification-card.read {
+            opacity: 0.75;
+            border-left-color: #ccc;
+        }
+
+        .notification-icon {
+            font-size: 28px;
+        }
+
+        .notification-content h3 {
+            margin: 0 0 6px 0;
+            color: #8B0000;
+            font-size: 18px;
+        }
+
+        .notification-content p {
+            margin: 0 0 8px 0;
+            color: #444;
+            white-space: pre-line;
+        }
+
+        .notification-meta {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .notification-actions button {
+            background: transparent;
+            border: none;
+            color: #8B0000;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .notification-actions button:hover {
+            background: rgba(139, 0, 0, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #777;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .notification-card {
+                grid-template-columns: 1fr;
+            }
+
+            .notification-actions {
+                justify-self: end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <span class="mini-text-vertical">MinEducación</span>
+        <img src="logo.png" alt="Logo UdeM" class="logo" />
+        <div style="margin-left: auto; padding-right: 20px; display:flex; align-items:center; gap:10px;">
+            <span id="userBadge" style="color: #8B0000; font-weight: bold;"></span>
+            <button onclick="logout()" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <h1 class="titulo-gestion">Centro de Notificaciones</h1>
+    <hr class="divider">
+
+    <nav class="menu-lateral">
+        <button class="menu-toggle">☰</button>
+        <ul class="menu-items">
+            <li><a href="perfil.html">👤 Mi Perfil</a></li>
+            <li><a href="monitorias.html">🏠 Inicio</a></li>
+            <li><a href="convocatorias_estudiante.html">📋 Convocatorias</a></li>
+            <li><a href="postulaciones.html">📚 Mis Postulaciones</a></li>
+            <li><a href="notificaciones.html" class="active">🔔 Notificaciones</a></li>
+        </ul>
+    </nav>
+
+    <main class="notificaciones-container">
+        <div class="notifications-header">
+            <div class="filter-group">
+                <button id="btnFilterAll" class="active" onclick="setFilter('all')">Todas</button>
+                <button id="btnFilterUnread" onclick="setFilter('unread')">Sin leer</button>
+            </div>
+            <div>
+                <button class="btn" style="background:#17a2b8; color:#fff; border-radius:20px;" onclick="refreshNotifications()">🔄 Actualizar</button>
+                <button class="btn" style="background:#28a745; color:#fff; border-radius:20px;" onclick="markAllRead()">✅ Marcar todas como leídas</button>
+            </div>
+        </div>
+        <div id="notificationsList"></div>
+    </main>
+
+    <script src="api.js"></script>
+    <script>
+        let notifications = [];
+        let currentFilter = 'all';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!ApiUtils.isAuthenticated()) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const toggle = document.querySelector('.menu-toggle');
+            const menu = document.querySelector('.menu-items');
+            if (toggle && menu) {
+                toggle.addEventListener('click', () => {
+                    menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+                });
+            }
+
+            const user = ApiUtils.getUserData();
+            if (user) {
+                const badge = document.getElementById('userBadge');
+                badge.textContent = `${user.nombre} (${user.rol})`;
+            }
+
+            await loadNotifications();
+        });
+
+        async function loadNotifications() {
+            const params = currentFilter === 'unread' ? { estado: 'unread' } : {};
+            const result = await ApiUtils.getNotificaciones(params);
+            if (!result.success) {
+                alert(`Error al cargar notificaciones: ${result.error}`);
+                return;
+            }
+            notifications = result.data || [];
+            renderNotifications();
+        }
+
+        function renderNotifications() {
+            const container = document.getElementById('notificationsList');
+            if (!notifications.length) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No hay notificaciones ${currentFilter === 'unread' ? 'pendientes' : 'registradas'}.</h3>
+                        <p>Vuelve a revisar más tarde.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const iconMap = {
+                info: 'ℹ️',
+                success: '✅',
+                warning: '⚠️',
+                error: '⛔',
+            };
+
+            const items = notifications.map((notif) => {
+                const icon = iconMap[notif.tipo] || '🔔';
+                const fecha = formatDate(notif.created_at);
+                const readLabel = notif.leida ? `Leída ${notif.read_at ? ' - ' + formatDate(notif.read_at) : ''}` : 'Sin leer';
+                return `
+                    <div class="notification-card ${notif.leida ? 'read' : ''}">
+                        <div class="notification-icon">${icon}</div>
+                        <div class="notification-content">
+                            <h3>${notif.titulo}</h3>
+                            <p>${notif.mensaje}</p>
+                            <div class="notification-meta">${fecha} · ${readLabel}</div>
+                        </div>
+                        <div class="notification-actions">
+                            ${notif.leida ? '' : `<button onclick="markRead(${notif.id})">Marcar como leída</button>`}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = items.join('');
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.getElementById('btnFilterAll').classList.toggle('active', filter === 'all');
+            document.getElementById('btnFilterUnread').classList.toggle('active', filter === 'unread');
+            loadNotifications();
+        }
+
+        async function markRead(id) {
+            const result = await ApiUtils.markNotificationRead(id);
+            if (!result.success) {
+                alert(`No se pudo marcar la notificación: ${result.error}`);
+                return;
+            }
+            notifications = notifications.map((notif) =>
+                notif.id === id ? { ...notif, leida: true, read_at: result.data.read_at || new Date().toISOString() } : notif
+            );
+            renderNotifications();
+        }
+
+        async function markAllRead() {
+            const result = await ApiUtils.markAllNotificationsRead();
+            if (!result.success) {
+                alert(`No se pudieron marcar todas como leídas: ${result.error}`);
+                return;
+            }
+            notifications = notifications.map((notif) => ({ ...notif, leida: true, read_at: new Date().toISOString() }));
+            renderNotifications();
+        }
+
+        function refreshNotifications() {
+            loadNotifications();
+        }
+
+        function formatDate(value) {
+            if (!value) return 'Fecha no disponible';
+            return new Date(value).toLocaleString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+            });
+        }
+
+        function logout() {
+            ApiUtils.logout();
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

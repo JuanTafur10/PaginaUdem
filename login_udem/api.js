@@ -203,6 +203,30 @@ class ApiClient {
         return await this.request(`/convocatorias/${convocatoriaId}/postulaciones${query}`);
     }
 
+    async decidirPostulacion(convocatoriaId, postulacionId, payload = {}) {
+        return await this.request(`/convocatorias/${convocatoriaId}/postulaciones/${postulacionId}/decision`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload)
+        });
+    }
+
+    async obtenerNotificaciones(params = {}) {
+        const query = this.buildQuery(params);
+        return await this.request(`/notificaciones${query}`);
+    }
+
+    async marcarNotificacionLeida(id) {
+        return await this.request(`/notificaciones/${id}/leer`, {
+            method: 'POST'
+        });
+    }
+
+    async marcarTodasNotificacionesLeidas() {
+        return await this.request('/notificaciones/marcar-todas', {
+            method: 'POST'
+        });
+    }
+
     async obtenerConfigIA() {
         return await this.request('/ia/config');
     }
@@ -379,6 +403,47 @@ Posibles soluciones:
 
     async getConvocatoriasArchivadas() {
         return await this.getConvocatorias({ archivadas: 'solo' });
+    },
+
+    async decidirPostulacion(convocatoriaId, postulacionId, decision, comentario = '') {
+        try {
+            const payload = { decision, comentario };
+            const response = await apiClient.decidirPostulacion(convocatoriaId, postulacionId, payload);
+            return { success: true, data: response };
+        } catch (error) {
+            console.error('Error al registrar la decisión de la postulación:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async getNotificaciones(params = {}) {
+        try {
+            const response = await apiClient.obtenerNotificaciones(params);
+            return { success: true, data: response };
+        } catch (error) {
+            console.error('Error al obtener notificaciones:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async markNotificationRead(id) {
+        try {
+            const response = await apiClient.marcarNotificacionLeida(id);
+            return { success: true, data: response };
+        } catch (error) {
+            console.error('Error al marcar notificación como leída:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async markAllNotificationsRead() {
+        try {
+            const response = await apiClient.marcarTodasNotificacionesLeidas();
+            return { success: true, data: response };
+        } catch (error) {
+            console.error('Error al marcar todas las notificaciones como leídas:', error);
+            return { success: false, error: error.message };
+        }
     },
 
     // Asignar fechas a convocatoria

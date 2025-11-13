@@ -114,6 +114,8 @@
         .status-pending { background: #ffe082; color: #8a6d3b; }
         .status-eligible { background: #81c784; color: #1b5e20; }
         .status-ineligible { background: #ef9a9a; color: #b71c1c; }
+        .status-selected { background: #388e3c; color: #ffffff; }
+        .status-not-selected { background: #9e9e9e; color: #ffffff; }
 
         .postulacion-card {
             border: 1px solid #e0e0e0;
@@ -212,6 +214,7 @@
             <li><a href="monitorias.html">⬅ Volver</a></li>
             <li><a href="convocatorias_estudiante.html">📋 Convocatorias</a></li>
             <li><a href="convocatorias.html">⚙ Gestión de Convocatorias</a></li>
+            <li><a href="notificaciones.html">🔔 Notificaciones</a></li>
         </ul>
     </nav>
 
@@ -472,9 +475,21 @@
             }
 
             const cards = postulaciones.map((post) => {
-                const estadoClase = post.estado === 'eligible' ? 'status-eligible'
-                                  : post.estado === 'ineligible' ? 'status-ineligible'
-                                  : 'status-pending';
+                let estadoClase = 'status-pending';
+                switch (post.estado) {
+                    case 'eligible':
+                        estadoClase = 'status-eligible';
+                        break;
+                    case 'ineligible':
+                        estadoClase = 'status-ineligible';
+                        break;
+                    case 'selected':
+                        estadoClase = 'status-selected';
+                        break;
+                    case 'not_selected':
+                        estadoClase = 'status-not-selected';
+                        break;
+                }
                 const detalles = [];
 
                 if (post.puntaje) {
@@ -496,6 +511,16 @@
                     ? `<p><strong>CV adjunto:</strong> ${post.datos_soportes.cvNombre}</p>`
                     : '';
 
+                let acciones = '';
+                if ((rolUsuario === 'COORDINATOR' || rolUsuario === 'PROFESSOR') && !['selected', 'not_selected'].includes(post.estado)) {
+                    acciones = `
+                        <div class="actions" style="margin-top:12px;">
+                            <button class="btn-primary" onclick="decidirPostulacion(${post.id}, 'selected')">Asignar monitor</button>
+                            <button class="btn-secondary" onclick="decidirPostulacion(${post.id}, 'not_selected')">Marcar no seleccionado</button>
+                        </div>
+                    `;
+                }
+
                 return `
                     <div class="postulacion-card">
                         <h3>Postulación #${post.id}</h3>
@@ -506,6 +531,7 @@
                         ${datosFormulario}
                         ${soporteCV}
                         ${detalles.length ? `<div style="margin-top:8px; font-size:13px; color:#555;">${detalles.join('<br>')}</div>` : ''}
+                        ${acciones}
                     </div>
                 `;
             });
@@ -668,9 +694,41 @@
                 pending: 'En validación',
                 eligible: 'Elegible',
                 ineligible: 'No elegible',
+                selected: 'Seleccionado',
+                not_selected: 'No seleccionado',
                 archived: 'Archivada'
             };
             return map[estado] || estado;
+        }
+
+        async function decidirPostulacion(postulacionId, decision) {
+            if (!convocatoriaSeleccionada) {
+                lanzarAlerta('Selecciona una convocatoria antes de registrar la decisión.', 'error');
+                return;
+            }
+
+            let comentario = '';
+            if (decision === 'not_selected') {
+                const respuesta = prompt('Ingrese el motivo del rechazo (opcional):');
+                if (respuesta === null) return;
+                comentario = respuesta.trim();
+            } else {
+                const respuesta = prompt('Mensaje para el estudiante (opcional):');
+                if (respuesta === null) return;
+                comentario = respuesta.trim();
+            }
+
+            try {
+                const resultado = await ApiUtils.decidirPostulacion(convocatoriaSeleccionada, postulacionId, decision, comentario);
+                if (resultado.success) {
+                    lanzarAlerta('Decisión registrada correctamente.', 'success');
+                    await cargarPostulaciones(true);
+                } else {
+                    lanzarAlerta(resultado.error || 'No se pudo registrar la decisión.', 'error');
+                }
+            } catch (error) {
+                lanzarAlerta(error.message, 'error');
+            }
         }
 
         function logout() {
