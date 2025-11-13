@@ -1,19 +1,19 @@
 /* Fuentes Nexa */
 @font-face {
   font-family: "Nexa Regular";
-  src: url("Nexa-Regular.ttf") format("truetype");
+  src: url("fonts/Nexa_Regular.ttf") format("truetype");
 }
 @font-face {
   font-family: "Nexa Book";
-  src: url("Nexa-Book.ttf") format("truetype");
+  src: url("fonts/Nexa_Book.ttf") format("truetype");
 }
 @font-face {
   font-family: "Nexa ExtraLight";
-  src: url("Nexa-ExtraLight.ttf") format("truetype");
+  src: url("fonts/Nexa_Extralight.ttf") format("truetype");
 }
 @font-face {
   font-family: "Nexa Thin";
-  src: url("Nexa-Thin.ttf") format("truetype");
+  src: url("fonts/Nexa_Thin.ttf") format("truetype");
 }
 
 body, html {
