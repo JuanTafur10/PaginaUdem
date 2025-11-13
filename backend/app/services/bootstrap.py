@@ -18,6 +18,16 @@ def ensure_schema_updates() -> None:
         if "archivada_at" not in columnas_convocatoria:
             conn.execute(text("ALTER TABLE convocatoria ADD COLUMN archivada_at DATETIME"))
 
+        columnas_postulacion = {
+            row[1]: row for row in conn.execute(text("PRAGMA table_info(postulacion)"))
+        }
+        if columnas_postulacion:
+            if "preasignada" not in columnas_postulacion:
+                conn.execute(text("ALTER TABLE postulacion ADD COLUMN preasignada BOOLEAN DEFAULT 0"))
+                conn.execute(text("UPDATE postulacion SET preasignada = 0 WHERE preasignada IS NULL"))
+            if "creada_por_id" not in columnas_postulacion:
+                conn.execute(text("ALTER TABLE postulacion ADD COLUMN creada_por_id INTEGER"))
+
 
 def seed_default_data() -> None:
     if Usuario.query.first():

@@ -210,6 +210,35 @@ class ApiClient {
         return await this.request(`/convocatorias/${convocatoriaId}/postulaciones${query}`);
     }
 
+    async obtenerPostulacionesPreasignadas(params = {}) {
+        const query = this.buildQuery(params);
+        return await this.request(`/postulaciones/preasignadas${query}`);
+    }
+
+    async crearPostulacionPreasignada(payload = {}) {
+        return await this.request('/postulaciones/preasignadas', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+    }
+
+    async actualizarPostulacionPreasignada(id, payload = {}) {
+        return await this.request(`/postulaciones/preasignadas/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload)
+        });
+    }
+
+    async eliminarPostulacionPreasignada(id) {
+        return await this.request(`/postulaciones/preasignadas/${id}`, {
+            method: 'DELETE'
+        });
+    }
+
+    async obtenerOpcionesPreasignadas() {
+        return await this.request('/postulaciones/preasignadas/opciones');
+    }
+
     async decidirPostulacion(convocatoriaId, postulacionId, payload = {}) {
         return await this.request(`/convocatorias/${convocatoriaId}/postulaciones/${postulacionId}/decision`, {
             method: 'PATCH',
@@ -419,6 +448,56 @@ Posibles soluciones:
             return { success: true, data: response };
         } catch (error) {
             console.error('Error al registrar la decisión de la postulación:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async getPostulacionesPreasignadas(params = {}) {
+        try {
+            const response = await apiClient.obtenerPostulacionesPreasignadas(params);
+            return { success: true, data: response };
+        } catch (error) {
+            console.error('Error al obtener preasignaciones:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async crearPostulacionPreasignada(payload = {}) {
+        try {
+            const response = await apiClient.crearPostulacionPreasignada(payload);
+            return { success: true, data: response };
+        } catch (error) {
+            console.error('Error al crear preasignación:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async actualizarPostulacionPreasignada(id, payload = {}) {
+        try {
+            const response = await apiClient.actualizarPostulacionPreasignada(id, payload);
+            return { success: true, data: response };
+        } catch (error) {
+            console.error('Error al actualizar preasignación:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async eliminarPostulacionPreasignada(id) {
+        try {
+            const response = await apiClient.eliminarPostulacionPreasignada(id);
+            return { success: true, data: response };
+        } catch (error) {
+            console.error('Error al eliminar preasignación:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async getPreasignadasOpciones() {
+        try {
+            const response = await apiClient.obtenerOpcionesPreasignadas();
+            return { success: true, data: response };
+        } catch (error) {
+            console.error('Error al obtener opciones de preasignación:', error);
             return { success: false, error: error.message };
         }
     },

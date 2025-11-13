@@ -151,6 +151,38 @@ def main():
         )
         _print("Ranking IA", ranking_coord)
 
+        # 7. Registrar preasignación manual por el coordinador
+        pre_payload = {
+            "convocatoria_id": convocatoria_id,
+            "estudiante_id": login_student["user"]["id"],
+            "estado": "selected",
+            "comentario": "Asignación manual de prueba",
+            "puntaje": 4.8,
+        }
+        resp_pre = client.post(
+            "/api/postulaciones/preasignadas",
+            headers={"Authorization": f"Bearer {login_coord['access_token']}"},
+            json=pre_payload,
+        )
+        assert resp_pre.status_code == 201, f"Registro de preasignación falló: {resp_pre.get_data(as_text=True)}"
+        preasignada = resp_pre.get_json()
+        assert preasignada.get("preasignada") is True
+        _print("Preasignación creada", preasignada)
+
+        # 7.1 Actualizar estado de la preasignación
+        resp_update = client.patch(
+            f"/api/postulaciones/preasignadas/{preasignada['id']}",
+            headers={"Authorization": f"Bearer {login_coord['access_token']}"},
+            json={"estado": "not_selected", "comentario": "Prueba finalizada"},
+        )
+        assert resp_update.status_code == 200, f"Actualización preasignada falló: {resp_update.get_data(as_text=True)}"
+        _print("Preasignación actualizada", resp_update.get_json())
+
+        # 7.2 Verificar notificaciones adicionales
+        notificaciones_post = obtener_notificaciones(client, login_student["access_token"])
+        assert len(notificaciones_post) >= len(notificaciones), "El estudiante debería recibir notificaciones de la preasignación"
+        _print("Notificaciones actualizadas", notificaciones_post)
+
         # Limpieza: eliminar postulaciones y convocatoria generadas para no dejar datos "basura".
         Postulacion.query.filter_by(convocatoria_id=convocatoria_id).delete()
         Convocatoria.query.filter_by(id=convocatoria_id).delete()

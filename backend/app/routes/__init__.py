@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Flask
 
-from . import auth, convocatorias, ia, notificaciones, system
+from . import auth, convocatorias, ia, notificaciones, postulaciones, system
 
 
 def register_blueprints(app: Flask) -> None:
@@ -12,6 +12,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(convocatorias.bp)
     app.register_blueprint(ia.bp)
     app.register_blueprint(notificaciones.bp)
+    app.register_blueprint(postulaciones.bp)
 
 
 __all__ = ["register_blueprints"]

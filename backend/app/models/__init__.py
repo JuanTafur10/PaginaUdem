@@ -187,17 +187,28 @@ class Postulacion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     estudiante_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
     convocatoria_id = db.Column(db.Integer, db.ForeignKey("convocatoria.id"), nullable=False)
+    creada_por_id = db.Column(db.Integer, db.ForeignKey("usuario.id"))
     estado = db.Column(db.Enum(EstadoPostulacion), default=EstadoPostulacion.PENDING, nullable=False)
     puntaje = db.Column(db.Float)
     resultado = db.Column(db.String(50))
     razones_rechazo = db.Column(db.Text)
     datos_formulario = db.Column(db.JSON, default=dict)
     datos_soportes = db.Column(db.JSON, default=dict)
+    preasignada = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=utc_now_naive)
     updated_at = db.Column(db.DateTime, default=utc_now_naive, onupdate=utc_now_naive)
 
-    estudiante = db.relationship("Usuario", backref=db.backref("postulaciones", lazy=True))
+    estudiante = db.relationship(
+        "Usuario",
+        backref=db.backref("postulaciones", lazy=True),
+        foreign_keys=[estudiante_id],
+    )
     convocatoria = db.relationship("Convocatoria", backref=db.backref("postulaciones", lazy=True))
+    creador = db.relationship(
+        "Usuario",
+        backref=db.backref("postulaciones_creadas", lazy=True),
+        foreign_keys=[creada_por_id],
+    )
 
     def completar_formulario(self, datos: Dict) -> None:
         self.datos_formulario = datos or {}
@@ -227,6 +238,11 @@ class Postulacion(db.Model):
         self.resultado = "no_seleccionado"
         self.razones_rechazo = comentario or None
 
+    def marcar_preasignada(self, creada_por_id: int | None = None) -> None:
+        self.preasignada = True
+        if creada_por_id is not None:
+            self.creada_por_id = creada_por_id
+
     def to_dict(self) -> Dict:
         return {
             "id": self.id,
@@ -236,6 +252,8 @@ class Postulacion(db.Model):
             "razones_rechazo": self.razones_rechazo,
             "convocatoria_id": self.convocatoria_id,
             "estudiante_id": self.estudiante_id,
+            "creada_por_id": self.creada_por_id,
+            "preasignada": self.preasignada,
             "datos_formulario": self.datos_formulario or {},
             "datos_soportes": self.datos_soportes or {},
             "created_at": self.created_at.isoformat() if self.created_at else None,

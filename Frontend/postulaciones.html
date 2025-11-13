@@ -187,6 +187,71 @@
             color: #555;
         }
 
+        .preasignadas-panel {
+            grid-column: 1 / -1;
+        }
+
+        .pill-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            background: #f1f3f5;
+            color: #495057;
+        }
+
+        .preasignadas-list {
+            margin-top: 20px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .preasignada-card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 16px;
+            background: #ffffff;
+            display: grid;
+            gap: 8px;
+        }
+
+        .preasignada-card header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .preasignada-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #8B0000;
+            color: #8B0000;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
         @media (max-width: 992px) {
             .panel-grid {
                 grid-template-columns: 1fr;
@@ -264,6 +329,53 @@
                 <div id="rankingContainer" style="margin-top: 20px; display:none;"></div>
                 <div id="reporteDescartes" style="margin-top: 20px;"></div>
             </section>
+
+            <section class="panel-card preasignadas-panel" id="preasignadasPanel" style="display:none;">
+                <h2>Preasignación de Monitores</h2>
+                <p class="description">
+                    Registra postulaciones creadas por el equipo coordinador antes de abrirlas al estudiantado.
+                    Puedes actualizar el estado y asignarlas a una convocatoria existente.
+                </p>
+                <form id="preasignadaForm">
+                    <div class="form-group">
+                        <label for="preasignadaEstudiante">Estudiante</label>
+                        <select id="preasignadaEstudiante" required>
+                            <option value="">Selecciona un estudiante</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="preasignadaConvocatoria">Convocatoria</label>
+                        <select id="preasignadaConvocatoria" required>
+                            <option value="">Selecciona una convocatoria</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="preasignadaEstado">Estado</label>
+                        <select id="preasignadaEstado">
+                            <option value="selected">Seleccionado</option>
+                            <option value="eligible">Elegible</option>
+                            <option value="pending">En validación</option>
+                            <option value="ineligible">No elegible</option>
+                            <option value="not_selected">No seleccionado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="preasignadaPuntaje">Puntaje (opcional)</label>
+                        <input type="number" step="0.1" id="preasignadaPuntaje" placeholder="Ej. 4.5" />
+                    </div>
+                    <div class="form-group">
+                        <label for="preasignadaComentario">Comentarios u observaciones</label>
+                        <textarea id="preasignadaComentario" placeholder="Detalles para el estudiante o registro interno"></textarea>
+                    </div>
+                    <div class="actions">
+                        <button type="submit" class="btn-primary" id="preasignadaSubmit">Guardar preasignación</button>
+                        <button type="button" class="btn-secondary" id="preasignadaReset">Limpiar</button>
+                    </div>
+                </form>
+                <div class="preasignadas-list" id="preasignadasList">
+                    <div class="empty-state">Aún no hay preasignaciones registradas para esta convocatoria.</div>
+                </div>
+            </section>
         </div>
     </main>
 
@@ -276,6 +388,9 @@
         let ultimoRanking = null;
         let esperandoEnvio = false;
         let convocatoriaPreseleccionada = null;
+        let preasignadas = [];
+        let estudiantesDisponibles = [];
+        let preasignadaEnEdicion = null;
 
         document.addEventListener('DOMContentLoaded', async () => {
             const toggle = document.querySelector('.menu-toggle');
@@ -312,6 +427,10 @@
             configurarEventos();
             convocatoriaPreseleccionada = obtenerConvocatoriaPreseleccionada();
             await cargarConvocatorias();
+            if (rolUsuario === 'COORDINATOR' || rolUsuario === 'PROFESSOR') {
+                await cargarOpcionesPreasignadas();
+                await cargarPreasignadas();
+            }
         });
 
         function actualizarEncabezado() {
@@ -328,18 +447,25 @@
             const resumenTitulo = document.getElementById('resumenTitulo');
             const resumenDescripcion = document.getElementById('resumenDescripcion');
             const verRankingBtn = document.getElementById('verRanking');
+            const preasignadasPanel = document.getElementById('preasignadasPanel');
 
             if (rolUsuario === 'STUDENT') {
                 formPanel.style.display = 'block';
                 resumenTitulo.textContent = 'Mis Postulaciones';
                 resumenDescripcion.textContent = 'Consulta el estado de tus postulaciones por convocatoria y revisa los resultados generados por la IA.';
                 verRankingBtn.style.display = 'none';
+                if (preasignadasPanel) {
+                    preasignadasPanel.style.display = 'none';
+                }
             } else {
                 formPanel.style.display = 'none';
                 resumenTitulo.textContent = 'Gestión de Postulaciones';
                 resumenDescripcion.textContent = 'Selecciona una convocatoria para revisar todas las postulaciones recibidas, ranking de IA y descartes.';
                 if (rolUsuario === 'COORDINATOR' || rolUsuario === 'PROFESSOR') {
                     verRankingBtn.style.display = 'inline';
+                    if (preasignadasPanel) {
+                        preasignadasPanel.style.display = 'block';
+                    }
                 }
             }
         }
@@ -351,10 +477,15 @@
             const reloadBtn = document.getElementById('reloadPostulaciones');
             const verRankingBtn = document.getElementById('verRanking');
             const fileInput = document.getElementById('cvFile');
+            const preasignadaForm = document.getElementById('preasignadaForm');
+            const preasignadaReset = document.getElementById('preasignadaReset');
 
             selectConvocatoria.addEventListener('change', async (event) => {
                 convocatoriaSeleccionada = event.target.value ? Number(event.target.value) : null;
                 await cargarPostulaciones();
+                if (rolUsuario === 'COORDINATOR' || rolUsuario === 'PROFESSOR') {
+                    await cargarPreasignadas();
+                }
             });
 
             if (form) {
@@ -368,6 +499,9 @@
             reloadBtn.addEventListener('click', async () => {
                 await cargarConvocatorias();
                 await cargarPostulaciones(true);
+                if (rolUsuario === 'COORDINATOR' || rolUsuario === 'PROFESSOR') {
+                    await cargarPreasignadas();
+                }
             });
 
             verRankingBtn.addEventListener('click', () => {
@@ -386,6 +520,13 @@
                 const file = fileInput.files && fileInput.files[0];
                 label.textContent = file ? file.name : '';
             });
+
+            if (preasignadaForm) {
+                preasignadaForm.addEventListener('submit', manejarEnvioPreasignada);
+            }
+            if (preasignadaReset) {
+                preasignadaReset.addEventListener('click', limpiarFormularioPreasignada);
+            }
         }
 
         function obtenerConvocatoriaPreseleccionada() {
@@ -428,15 +569,16 @@
                 }
 
                 convocatoriasDisponibles = result.data || [];
-                actualizarSelectoresConvocatoria();
+                await actualizarSelectoresConvocatoria();
             } catch (error) {
                 lanzarAlerta(error.message, 'error');
             }
         }
 
-        function actualizarSelectoresConvocatoria() {
+        async function actualizarSelectoresConvocatoria() {
             const selectForm = document.getElementById('convocatoriaSelect');
             const selectFiltro = document.getElementById('convocatoriaFiltro');
+            const selectPreasignada = document.getElementById('preasignadaConvocatoria');
 
             const optionsHtml = ['<option value="">Selecciona una convocatoria</option>'];
             convocatoriasDisponibles.forEach((conv) => {
@@ -446,6 +588,9 @@
             selectFiltro.innerHTML = optionsHtml.join('');
             if (selectForm) {
                 selectForm.innerHTML = optionsHtml.join('');
+            }
+            if (selectPreasignada) {
+                selectPreasignada.innerHTML = optionsHtml.join('');
             }
 
             if (convocatoriasDisponibles.length > 0) {
@@ -465,8 +610,14 @@
                 if (selectForm) {
                     selectForm.value = seleccion;
                 }
+                if (selectPreasignada) {
+                    selectPreasignada.value = String(seleccion);
+                }
                 convocatoriaSeleccionada = seleccion;
-                cargarPostulaciones();
+                await cargarPostulaciones();
+                if (rolUsuario === 'COORDINATOR' || rolUsuario === 'PROFESSOR') {
+                    await cargarPreasignadas();
+                }
                 convocatoriaPreseleccionada = null;
                 limpiarParametroConvocatoria();
             } else {
@@ -475,6 +626,265 @@
                 document.getElementById('rankingContainer').style.display = 'none';
                 document.getElementById('rankingContainer').innerHTML = '';
                 document.getElementById('reporteDescartes').innerHTML = '';
+                if (selectPreasignada) {
+                    selectPreasignada.value = '';
+                }
+                if (rolUsuario === 'COORDINATOR' || rolUsuario === 'PROFESSOR') {
+                    preasignadas = [];
+                    renderizarPreasignadas();
+                }
+            }
+        }
+
+        async function cargarOpcionesPreasignadas() {
+            try {
+                const result = await ApiUtils.getPreasignadasOpciones();
+                if (!result.success) {
+                    lanzarAlerta(result.error || 'No fue posible obtener la información de estudiantes.', 'error');
+                    return;
+                }
+                estudiantesDisponibles = result.data.estudiantes || [];
+                renderizarSelectEstudiantes();
+            } catch (error) {
+                lanzarAlerta(error.message, 'error');
+            }
+        }
+
+        function renderizarSelectEstudiantes() {
+            const select = document.getElementById('preasignadaEstudiante');
+            if (!select) return;
+            const options = ['<option value="">Selecciona un estudiante</option>'];
+            estudiantesDisponibles.forEach((est) => {
+                const etiqueta = est.nombre ? `${est.nombre} · ${est.codigo || est.correo || est.id}` : est.correo || `ID ${est.id}`;
+                options.push(`<option value="${est.id}">${etiqueta}</option>`);
+            });
+            select.innerHTML = options.join('');
+        }
+
+        async function cargarPreasignadas() {
+            const contenedor = document.getElementById('preasignadasList');
+            if (!contenedor) {
+                return;
+            }
+            try {
+                const params = {};
+                if (convocatoriaSeleccionada) {
+                    params.convocatoria_id = convocatoriaSeleccionada;
+                }
+                const result = await ApiUtils.getPostulacionesPreasignadas(params);
+                if (!result.success) {
+                    lanzarAlerta(result.error || 'No fue posible obtener las preasignaciones.', 'error');
+                    return;
+                }
+                preasignadas = result.data || [];
+                renderizarPreasignadas();
+            } catch (error) {
+                lanzarAlerta(error.message, 'error');
+            }
+        }
+
+        function renderizarPreasignadas() {
+            const contenedor = document.getElementById('preasignadasList');
+            if (!contenedor) return;
+
+            if (!preasignadas || preasignadas.length === 0) {
+                contenedor.innerHTML = '<div class="empty-state">Aún no hay preasignaciones registradas para esta convocatoria.</div>';
+                return;
+            }
+
+            const cards = preasignadas.map((registro) => {
+                const estudiante = registro.estudiante || {};
+                const convocatoria = registro.convocatoria || {};
+                const creador = registro.creador || {};
+                const fecha = registro.created_at ? new Date(registro.created_at).toLocaleString('es-ES') : 'Sin registro';
+                const estadoClase = obtenerClaseEstado(registro.estado);
+                const comentario = registro.razones_rechazo || '';
+                const detalleResultado = registro.resultado && registro.estado === 'eligible' ? registro.resultado : '';
+                const puntaje = registro.puntaje != null ? Number(registro.puntaje).toFixed(2) : null;
+
+                const comentarioHtml = comentario ? `<p style="margin:0; color:#555;"><strong>Observaciones:</strong> ${comentario}</p>` : '';
+                const resultadoHtml = detalleResultado ? `<p style="margin:0; color:#555;"><strong>Resultado:</strong> ${detalleResultado}</p>` : '';
+                const puntajeHtml = puntaje ? `<span class="pill-badge">Puntaje ${puntaje}</span>` : '';
+
+                return `
+                    <article class="preasignada-card">
+                        <header>
+                            <div>
+                                <div style="font-weight:700; color:#8B0000;">${estudiante.nombre || 'Estudiante sin nombre'}</div>
+                                <div class="notification-meta">${convocatoria.curso || `Convocatoria #${registro.convocatoria_id}`} · ${fecha}</div>
+                            </div>
+                            <span class="status-badge ${estadoClase}">${mapearEstadoPostulacion(registro.estado)}</span>
+                        </header>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            ${puntajeHtml}
+                            <span class="pill-badge">Creado por ${creador.nombre || 'Equipo coordinador'}</span>
+                        </div>
+                        ${comentarioHtml}
+                        ${resultadoHtml}
+                        <div class="preasignada-actions">
+                            <button type="button" class="btn-outline" onclick="editarPreasignada(${registro.id})">Editar</button>
+                            <button type="button" class="btn-danger" onclick="eliminarPreasignada(${registro.id})">Eliminar</button>
+                        </div>
+                    </article>
+                `;
+            });
+
+            contenedor.innerHTML = cards.join('');
+        }
+
+        async function manejarEnvioPreasignada(event) {
+            event.preventDefault();
+            const estudianteSelect = document.getElementById('preasignadaEstudiante');
+            const convocatoriaSelect = document.getElementById('preasignadaConvocatoria');
+            const estadoSelect = document.getElementById('preasignadaEstado');
+            const puntajeInput = document.getElementById('preasignadaPuntaje');
+            const comentarioField = document.getElementById('preasignadaComentario');
+
+            const estudianteId = Number(estudianteSelect && estudianteSelect.value ? estudianteSelect.value : 0);
+            let convocatoriaId = Number(convocatoriaSelect && convocatoriaSelect.value ? convocatoriaSelect.value : 0);
+            if (!convocatoriaId && convocatoriaSeleccionada) {
+                convocatoriaId = Number(convocatoriaSeleccionada);
+            }
+
+            if (!estudianteId) {
+                lanzarAlerta('Selecciona un estudiante para registrar la preasignación.', 'error');
+                return;
+            }
+            if (!convocatoriaId) {
+                lanzarAlerta('Selecciona una convocatoria asociada a la preasignación.', 'error');
+                return;
+            }
+
+            const payload = {
+                estudiante_id: estudianteId,
+                convocatoria_id: convocatoriaId,
+                estado: estadoSelect ? estadoSelect.value : 'selected',
+            };
+
+            const comentario = comentarioField ? comentarioField.value.trim() : '';
+            if (comentario) {
+                payload.comentario = comentario;
+                payload.formulario = { comentario };
+            }
+
+            const puntajeValor = puntajeInput && puntajeInput.value ? Number(puntajeInput.value) : null;
+            if (puntajeValor !== null && !Number.isNaN(puntajeValor)) {
+                payload.puntaje = puntajeValor;
+            }
+
+            try {
+                let result;
+                if (preasignadaEnEdicion) {
+                    result = await ApiUtils.actualizarPostulacionPreasignada(preasignadaEnEdicion, payload);
+                } else {
+                    result = await ApiUtils.crearPostulacionPreasignada(payload);
+                }
+
+                if (!result.success) {
+                    lanzarAlerta(result.error || 'No fue posible guardar la preasignación.', 'error');
+                    return;
+                }
+
+                lanzarAlerta(preasignadaEnEdicion ? 'Preasignación actualizada correctamente.' : 'Preasignación registrada correctamente.', 'success');
+                await cargarPreasignadas();
+                limpiarFormularioPreasignada();
+            } catch (error) {
+                lanzarAlerta(error.message, 'error');
+            }
+        }
+
+        function limpiarFormularioPreasignada() {
+            const form = document.getElementById('preasignadaForm');
+            if (form) {
+                form.reset();
+            }
+            preasignadaEnEdicion = null;
+            const submitBtn = document.getElementById('preasignadaSubmit');
+            if (submitBtn) {
+                submitBtn.textContent = 'Guardar preasignación';
+            }
+            renderizarSelectEstudiantes();
+            const convocatoriaSelect = document.getElementById('preasignadaConvocatoria');
+            if (convocatoriaSelect) {
+                convocatoriaSelect.value = convocatoriaSeleccionada ? String(convocatoriaSeleccionada) : '';
+            }
+        }
+
+        function editarPreasignada(id) {
+            const registro = preasignadas.find((item) => Number(item.id) === Number(id));
+            if (!registro) {
+                lanzarAlerta('No se encontró la preasignación seleccionada.', 'error');
+                return;
+            }
+
+            preasignadaEnEdicion = id;
+
+            const estudianteSelect = document.getElementById('preasignadaEstudiante');
+            if (estudianteSelect) {
+                if (!Array.from(estudianteSelect.options).some((opt) => Number(opt.value) === Number(registro.estudiante_id))) {
+                    const estudiante = registro.estudiante || {};
+                    const option = document.createElement('option');
+                    option.value = registro.estudiante_id;
+                    option.textContent = `${estudiante.nombre || 'Estudiante'} · ${estudiante.codigo || estudiante.correo || registro.estudiante_id}`;
+                    estudianteSelect.appendChild(option);
+                }
+                estudianteSelect.value = registro.estudiante_id;
+            }
+
+            const convocatoriaSelect = document.getElementById('preasignadaConvocatoria');
+            if (convocatoriaSelect) {
+                if (!Array.from(convocatoriaSelect.options).some((opt) => Number(opt.value) === Number(registro.convocatoria_id))) {
+                    const convocatoria = registro.convocatoria || {};
+                    const option = document.createElement('option');
+                    option.value = registro.convocatoria_id;
+                    option.textContent = convocatoria.curso
+                        ? `${convocatoria.curso} · ${formatearEstadoConvocatoria(convocatoria.estado)}`
+                        : `Convocatoria #${registro.convocatoria_id}`;
+                    convocatoriaSelect.appendChild(option);
+                }
+                convocatoriaSelect.value = registro.convocatoria_id;
+            }
+
+            const estadoSelect = document.getElementById('preasignadaEstado');
+            if (estadoSelect) {
+                estadoSelect.value = registro.estado || 'selected';
+            }
+
+            const puntajeInput = document.getElementById('preasignadaPuntaje');
+            if (puntajeInput) {
+                puntajeInput.value = registro.puntaje != null ? Number(registro.puntaje).toFixed(2) : '';
+            }
+
+            const comentarioField = document.getElementById('preasignadaComentario');
+            if (comentarioField) {
+                comentarioField.value = registro.razones_rechazo || '';
+            }
+
+            const submitBtn = document.getElementById('preasignadaSubmit');
+            if (submitBtn) {
+                submitBtn.textContent = 'Actualizar preasignación';
+            }
+
+            lanzarAlerta('Preasignación cargada para edición.', 'info');
+        }
+
+        async function eliminarPreasignada(id) {
+            const confirmar = confirm('¿Seguro que deseas eliminar esta preasignación?');
+            if (!confirmar) return;
+
+            try {
+                const result = await ApiUtils.eliminarPostulacionPreasignada(id);
+                if (!result.success) {
+                    lanzarAlerta(result.error || 'No fue posible eliminar la preasignación.', 'error');
+                    return;
+                }
+                lanzarAlerta('Preasignación eliminada.', 'success');
+                if (preasignadaEnEdicion === id) {
+                    limpiarFormularioPreasignada();
+                }
+                await cargarPreasignadas();
+            } catch (error) {
+                lanzarAlerta(error.message, 'error');
             }
         }
 
@@ -517,21 +927,7 @@
             }
 
             const cards = postulaciones.map((post) => {
-                let estadoClase = 'status-pending';
-                switch (post.estado) {
-                    case 'eligible':
-                        estadoClase = 'status-eligible';
-                        break;
-                    case 'ineligible':
-                        estadoClase = 'status-ineligible';
-                        break;
-                    case 'selected':
-                        estadoClase = 'status-selected';
-                        break;
-                    case 'not_selected':
-                        estadoClase = 'status-not-selected';
-                        break;
-                }
+                const estadoClase = obtenerClaseEstado(post.estado);
                 const detalles = [];
 
                 if (post.puntaje) {
@@ -729,6 +1125,21 @@
                 archivada: 'Archivada'
             };
             return map[estado] || estado;
+        }
+
+        function obtenerClaseEstado(estado) {
+            switch (estado) {
+                case 'eligible':
+                    return 'status-eligible';
+                case 'ineligible':
+                    return 'status-ineligible';
+                case 'selected':
+                    return 'status-selected';
+                case 'not_selected':
+                    return 'status-not-selected';
+                default:
+                    return 'status-pending';
+            }
         }
 
         function mapearEstadoPostulacion(estado) {
