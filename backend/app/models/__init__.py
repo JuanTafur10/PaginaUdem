@@ -46,6 +46,7 @@ class Usuario(db.Model):
     tipo_usuario = db.Column(db.Enum(TipoUsuario), default=TipoUsuario.ESTUDIANTE)
     created_at = db.Column(db.DateTime, default=utc_now_naive)
     updated_at = db.Column(db.DateTime, default=utc_now_naive, onupdate=utc_now_naive)
+    inscripciones_monitoria = db.relationship("InscripcionMonitoria", backref="estudiante", lazy=True)
 
     def set_password(self, password: str) -> None:
         from werkzeug.security import generate_password_hash
@@ -117,6 +118,7 @@ class Convocatoria(db.Model):
     updated_at = db.Column(db.DateTime, default=utc_now_naive, onupdate=utc_now_naive)
     archivada = db.Column(db.Boolean, default=False)
     archivada_at = db.Column(db.DateTime)
+    inscripciones = db.relationship("InscripcionMonitoria", backref="convocatoria", lazy=True)
 
     def to_dict(self) -> Dict[str, Optional[str]]:
         def serialize_dt(dt: datetime | None) -> Tuple[Optional[str], Optional[str]]:
@@ -269,6 +271,31 @@ class EvaluacionAspirante(db.Model):
         }
 
 
+class InscripcionMonitoria(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    estudiante_id = db.Column(db.Integer, db.ForeignKey("usuario.id"), nullable=False)
+    convocatoria_id = db.Column(db.Integer, db.ForeignKey("convocatoria.id"), nullable=False)
+    comentario = db.Column(db.Text)
+    horario_preferido = db.Column(db.String(120))
+    created_at = db.Column(db.DateTime, default=utc_now_naive)
+    updated_at = db.Column(db.DateTime, default=utc_now_naive, onupdate=utc_now_naive)
+
+    __table_args__ = (
+        db.UniqueConstraint("estudiante_id", "convocatoria_id", name="uq_inscripcion_est_conv"),
+    )
+
+    def to_dict(self) -> Dict:
+        return {
+            "id": self.id,
+            "estudiante_id": self.estudiante_id,
+            "convocatoria_id": self.convocatoria_id,
+            "comentario": self.comentario,
+            "horario_preferido": self.horario_preferido,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
 class ConfiguracionIA(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     min_semestre = db.Column(db.Integer, default=1)
@@ -357,6 +384,7 @@ __all__ = [
     "Usuario",
     "Convocatoria",
     "Postulacion",
+    "InscripcionMonitoria",
     "EvaluacionAspirante",
     "ConfiguracionIA",
     "ReporteDescartes",

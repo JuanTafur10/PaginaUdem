@@ -14,6 +14,7 @@ from ..models import (
     Convocatoria,
     EstadoConvocatoria,
     EstadoPostulacion,
+    InscripcionMonitoria,
     EvaluacionAspirante,
     Postulacion,
     ReporteDescartes,
@@ -434,6 +435,55 @@ def crear_postulacion(convocatoria_id: int):
     status_code = 201 if postulacion.estado == EstadoPostulacion.ELIGIBLE else 202
     return jsonify(respuesta), status_code
 
+
+
+@bp.post("/<int:convocatoria_id>/inscripciones")
+@jwt_required()
+def inscribirse_monitoria(convocatoria_id: int):
+    estudiante_id = int(get_jwt_identity())
+    estudiante = Usuario.query.get_or_404(estudiante_id)
+
+    if not estudiante.is_student():
+        return jsonify({"msg": "Solo los estudiantes pueden inscribirse"}), 403
+
+    convocatoria = Convocatoria.query.get_or_404(convocatoria_id)
+
+    auto_archivar_convocatorias()
+    if convocatoria.archivada or convocatoria.estado not in {EstadoConvocatoria.ACTIVE, EstadoConvocatoria.SCHEDULED}:
+        return jsonify({"msg": "La convocatoria no admite nuevas inscripciones"}), 400
+
+    existente = InscripcionMonitoria.query.filter_by(
+        estudiante_id=estudiante.id,
+        convocatoria_id=convocatoria.id,
+    ).first()
+    if existente:
+        return (
+            jsonify({"msg": "Ya tienes una inscripción en esta convocatoria", "inscripcion": existente.to_dict()}),
+            409,
+        )
+
+    data = request.get_json() or {}
+    comentario = (data.get("comentario") or "").strip() or None
+    horario_preferido = (data.get("horario_preferido") or "").strip() or None
+
+    inscripcion = InscripcionMonitoria(
+        estudiante_id=estudiante.id,
+        convocatoria_id=convocatoria.id,
+        comentario=comentario,
+        horario_preferido=horario_preferido,
+    )
+    db.session.add(inscripcion)
+    db.session.flush()
+
+    crear_notificacion(
+        usuario_id=estudiante.id,
+        titulo=f"Inscripción registrada en {convocatoria.curso}",
+        mensaje="Te has inscrito exitosamente a la monitoría. Recibirás novedades por este medio.",
+        tipo=TipoNotificacion.SUCCESS,
+    )
+    db.session.commit()
+
+    return jsonify({"inscripcion": inscripcion.to_dict()}), 201
 
 @bp.get("/<int:convocatoria_id>/postulaciones")
 @jwt_required()

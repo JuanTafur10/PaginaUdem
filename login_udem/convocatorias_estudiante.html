@@ -134,6 +134,22 @@
             margin-right: 10px;
         }
 
+        .logo-link {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+
+        .logo-link:focus-visible {
+            outline: 3px solid #8B0000;
+            outline-offset: 3px;
+        }
+
+        .logo-link:hover {
+            transform: scale(1.02);
+        }
+
         .btn {
             padding: 12px 24px;
             border: none;
@@ -155,6 +171,38 @@
 
         .btn-postular:hover {
             background: linear-gradient(135deg, #a50000, #c50000);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 0, 0, 0.4);
+        }
+
+        .acciones-convocatoria {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn-inscribirme {
+            background: linear-gradient(135deg, #198754, #20c997);
+            color: white;
+            box-shadow: 0 4px 15px rgba(25, 135, 84, 0.3);
+        }
+
+        .btn-inscribirme:hover {
+            background: linear-gradient(135deg, #157347, #17a673);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(25, 135, 84, 0.35);
+        }
+
+        .btn-monitor {
+            background: linear-gradient(135deg, #8B0000, #b3001b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 0, 0, 0.3);
+        }
+
+        .btn-monitor:hover {
+            background: linear-gradient(135deg, #a10015, #c70021);
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(139, 0, 0, 0.4);
         }
@@ -281,7 +329,9 @@
     <!-- Header -->
     <header class="header">
         <span class="mini-text-vertical">MinEducación</span>
-        <img src="logo.png" alt="Logo UdeM" class="logo" />
+        <a href="monitorias.html" class="logo-link" title="Ir al inicio de monitorías">
+            <img src="logo.png" alt="Logo UdeM" class="logo" />
+        </a>
         <div style="margin-left: auto; padding-right: 20px;">
             <span id="userInfo" style="color: #8B0000; font-weight: bold;"></span>
             <button onclick="logout()" style="margin-left: 15px; padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;">Cerrar Sesión</button>
@@ -297,11 +347,11 @@
         <button class="menu-toggle">☰</button>
         <ul class="menu-items">
             <li><a href="perfil.html">👤 Mi Perfil</a></li>
-            <li><a href="monitorias.html">⬅ Volver</a></li>
+            <li><a href="monitorias.html">🏠 Monitorías</a></li>
             <li><a href="convocatorias_estudiante.html" class="active">📋 Convocatorias</a></li>
-            <li><a href="postulaciones.html">📚 Mis Postulaciones</a></li>
+            <li><a href="postulaciones.html">📚 Postulaciones</a></li>
             <li><a href="notificaciones.html">🔔 Notificaciones</a></li>
-            <li><a href="#">📞 Contáctanos</a></li>
+            <li><a href="#" id="contactLink">📞 Contáctanos</a></li>
         </ul>
     </nav>
 
@@ -316,6 +366,11 @@
                     style="background: #8B0000; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                 ⚙️ Vista de Gestión
             </button>
+        </div>
+
+        <div class="alert alert-info" style="margin-bottom: 20px;">
+            <strong>Convocatorias vs. Postulaciones:</strong> inscríbete aquí para recibir acompañamiento en una monitoría.
+            Si buscas ser monitor, dirígete al panel de postulaciones donde se solicita hoja de vida y soportes.
         </div>
 
         <!-- Estadísticas -->
@@ -522,9 +577,9 @@
             }
 
             const convocatoriasHTML = convocatoriasFiltradas.map(conv => {
-                const puedePostular = conv.estado === 'active';
-                const esProximaApertura = conv.estado === 'scheduled';
+                const permiteInscripcion = conv.estado === 'active' || conv.estado === 'scheduled';
                 const esArchivada = conv.estado === 'archived';
+                const permitePostulacion = conv.estado === 'active';
                 
                 return `
                     <div class="convocatoria-card">
@@ -569,14 +624,10 @@
                             <div class="info-value">${conv.requisitos}</div>
                         </div>
 
-                        <div style="margin-top: 20px; text-align: center;">
-                            ${puedePostular ? `
-                                <button class="btn btn-postular" onclick="postular(${conv.id})">
-                                    ✅ Postularme como Monitor
-                                </button>
-                            ` : esProximaApertura ? `
-                                <button class="btn btn-info" disabled>
-                                    ⏰ Próximamente disponible
+                        <div class="acciones-convocatoria">
+                            ${permiteInscripcion ? `
+                                <button class="btn btn-inscribirme" onclick="inscribirseMonitoria(${conv.id})">
+                                    📝 Inscribirme a la monitoría
                                 </button>
                             ` : esArchivada ? `
                                 <button class="btn btn-info" disabled>
@@ -584,7 +635,16 @@
                                 </button>
                             ` : `
                                 <button class="btn btn-info" disabled>
-                                    ℹ️ Ver información
+                                    ⛔ Convocatoria cerrada
+                                </button>
+                            `}
+                            ${permitePostulacion ? `
+                                <button class="btn btn-monitor" onclick="irAPostulaciones(${conv.id})">
+                                    ⭐ Quiero ser monitor
+                                </button>
+                            ` : `
+                                <button class="btn btn-monitor" disabled title="Disponible cuando la convocatoria esté activa">
+                                    ⭐ Quiero ser monitor
                                 </button>
                             `}
                         </div>
@@ -721,30 +781,37 @@
             });
         }
 
-        // Función para postularse
-        async function postular(convocatoriaId) {
+        // Función para inscribirse en la monitoría
+        async function inscribirseMonitoria(convocatoriaId) {
             const conv = [...todasLasConvocatorias, ...convocatoriasArchivadas].find(c => c.id === convocatoriaId);
             if (!conv) {
                 showAlert('❌ Convocatoria no encontrada', 'error');
                 return;
             }
 
-            if (conv.estado !== 'active') {
-                showAlert('⚠️ Solo puedes postularte a convocatorias activas.', 'error');
+            if (!['active', 'scheduled'].includes(conv.estado)) {
+                showAlert('⚠️ Esta convocatoria no admite inscripciones en este momento.', 'error');
                 return;
+            }
+
+            const confirma = window.confirm(`¿Confirmas tu inscripción a la monitoría de ${conv.curso}?`);
+            if (!confirma) {
+                return;
+            }
+
+            let comentario = window.prompt('Puedes agregar un comentario u horario preferido (opcional):', '');
+            if (comentario === null) {
+                comentario = '';
             }
 
             try {
                 ApiUtils.showLoadingModal();
-                const payload = {
-                    formulario: {
-                        estudiante_codigo: userData?.codigo || '',
-                        semestre: userData?.semestre || '',
-                        promedio: userData?.promedio || '',
-                    }
-                };
+                const payload = {};
+                if (comentario.trim()) {
+                    payload.comentario = comentario.trim();
+                }
 
-                const resultado = await ApiUtils.postularConvocatoria(convocatoriaId, payload);
+                const resultado = await ApiUtils.inscribirseMonitoria(convocatoriaId, payload);
                 ApiUtils.hideLoadingModal();
 
                 if (!resultado.success) {
@@ -752,24 +819,16 @@
                     return;
                 }
 
-                const data = resultado.data || {};
-                const postulacion = data.postulacion || {};
-                const estado = postulacion.estado;
-
-                if (estado === 'eligible') {
-                    const puntaje = postulacion.puntaje ? postulacion.puntaje.toFixed(2) : 'N/A';
-                    showAlert(`✅ Postulación registrada. Puntaje preliminar: ${puntaje}`, 'info');
-                } else {
-                    const razones = (data.descartados && data.descartados[0] && data.descartados[0].razones) || [];
-                    const mensaje = Array.isArray(razones) ? razones.join('; ') : razones;
-                    showAlert(`⚠️ Postulación registrada pero no elegible: ${mensaje || 'Revisa los requisitos.'}`, 'error');
-                }
-
+                showAlert('✅ Inscripción registrada. Te avisaremos por notificaciones cuando haya novedades.', 'info');
                 await loadConvocatorias();
             } catch (error) {
                 ApiUtils.hideLoadingModal();
-                showAlert(`❌ Error al postularse: ${error.message}`, 'error');
+                showAlert(`❌ Error al inscribirse: ${error.message}`, 'error');
             }
+        }
+
+        function irAPostulaciones(convocatoriaId) {
+            window.location.href = `postulaciones.html?convocatoriaId=${encodeURIComponent(convocatoriaId)}`;
         }
 
         // Función para cerrar sesión

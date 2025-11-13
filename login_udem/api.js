@@ -198,6 +198,13 @@ class ApiClient {
         });
     }
 
+    async inscribirseMonitoria(convocatoriaId, payload = {}) {
+        return await this.request(`/convocatorias/${convocatoriaId}/inscripciones`, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+    }
+
     async obtenerPostulaciones(convocatoriaId, params = {}) {
         const query = this.buildQuery(params);
         return await this.request(`/convocatorias/${convocatoriaId}/postulaciones${query}`);
@@ -474,6 +481,16 @@ Posibles soluciones:
             return { success: true, data: response };
         } catch (error) {
             console.error('Error al postularse:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async inscribirseMonitoria(convocatoriaId, payload = {}) {
+        try {
+            const response = await apiClient.inscribirseMonitoria(convocatoriaId, payload);
+            return { success: true, data: response };
+        } catch (error) {
+            console.error('Error al inscribirse en la monitoría:', error);
             return { success: false, error: error.message };
         }
     }
